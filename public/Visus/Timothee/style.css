@@ -28,6 +28,6 @@
 }
 
 #scene {
-    background-image: url("./map.jpeg");
+    background-image: url("../../data/map.jpeg");
     background-size: cover;
 }
