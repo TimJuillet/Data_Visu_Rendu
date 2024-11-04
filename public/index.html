@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Person Visualization</title>
+
+	<!-- import the d3 library -->
+    <script type='text/javascript' src='lib/d3.v5.min.js'></script>
+
+	<!-- style sheet -->
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+	<svg id="scene">
+        <g id='links'></g>
+        <g id='labels'></g>
+        <g id='nodes'></g>
+    </svg>
+
+    <script>
+        let width = 1250,
+            height = 1050,
+            svg = d3.select('#scene').attr("width", width).attr("height", height);
+
+        let persons;
+
+        d3.json("data.json").then(data => {
+            persons = data.persons;
+            links = data.links;
+            familyLinks = data.family-links;
+
+            // Set the scales based on your data and SVG size
+            const scales = {
+                x: d3.scaleLinear().domain([0, 165]).range([0, width]),
+                y: d3.scaleLinear().domain([0, 125]).range([0, height]),
+                size: d3.scaleLinear().domain([0, 80]).range([20, 60]) // for age
+            };
+
+            // Shape function to choose between circle and square based on profession
+            function getShape(d) {
+                if (d.metier === "enseignant") {
+                    return 'circle';
+                } else if (d.metier === "écolier") {
+                    return 'rect';
+                } else {
+                    return 'triangle';  // for any other profession
+                }
+            }
+
+            // Draw circles for persons
+            svg.selectAll('path')
+                .data(persons)
+                .enter()
+                .append('path') // Use 'path' to handle different shapes
+                .attr('d', d => {
+                    if (getShape(d) === 'circle') {
+                        return d3.symbol().type(d3.symbolCircle)();  // for Engineer
+                    } else if (getShape(d) === 'rect') {
+                        return d3.symbol().type(d3.symbolSquare)();  // for Doctor
+                    } else {
+                        return d3.symbol().type(d3.symbolTriangle)();  // other
+                    }
+                })
+                .attr("transform", d => `translate(${scales.x(d.position.x)}, ${scales.y(d.position.y)})`)
+                .attr("stroke-width", 2)
+                .attr('stroke', 'black')
+                .attr('fill', d => d.permisArme == "oui" ? 'red' : 'green') // Color based on 'alibi'
+                .attr("size", d => scales.size(d.age))  // size determined by age
+                .attr('transform', d => `translate(${scales.x(d.position.x)}, ${scales.y(d.position.y)}) scale(${scales.size(d.age)/20})`);
+
+            // Label group for names
+            let labelGroup = svg.selectAll('g.person')
+                .data(persons)
+                .enter()
+                .append('g')
+                .attr('class', 'person')
+                .attr("transform", d => `translate(${scales.x(d.position.x)}, ${scales.y(d.position.y)})`);
+
+            // Add a rectangle behind the name
+            labelGroup.append('rect')
+                .attr('width', d => d.name.length * 10 + 5)
+                .attr('stroke-width', 2)
+                .attr('stroke', 'black')
+                .attr('height', 17)
+                .attr('fill', 'white');
+
+            // Add text (name)
+            labelGroup.append('text')
+                .text(d => d.name)
+                .attr('y', 13)
+                .attr('x', d => d.name.length * 10 + 2)
+                .attr('fill', 'black')
+                .attr('text-anchor', 'end')
+                .attr("font-size", ".8em");
+        });
+
+    </script>
+
+</body>
+</html>
