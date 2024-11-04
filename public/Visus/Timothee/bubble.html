@@ -1,113 +1,149 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Map with Scaled Points</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
+<meta charset="utf-8">
+<style>
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+#my_dataviz {
+    width: 100%;
+    height: 100vh;
+}
+</style>
+<svg id="my_dataviz"></svg>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo-projection/2.4.1/d3-geo-projection.min.js"></script>
+<script>
+// Get window dimensions
+const width = window.innerWidth;
+const height = window.innerHeight;
+
+// The svg
+var svg = d3.select("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+// Map and projection
+var projection = d3.geoMercator()
+    .center([10, 20])  // Ajusté pour centrer la carte
+    .scale(width/7)    // Ajusté pour une meilleure échelle
+    .translate([width/2, height/2]);
+
+// Path generator
+var path = d3.geoPath()
+    .projection(projection);
+
+// Load world shape
+d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson", function(error, dataGeo) {
+    if (error) throw error;
+
+    // Draw the map
+    svg.append("g")
+        .selectAll("path")
+        .data(dataGeo.features)
+        .enter()
+        .append("path")
+        .attr("fill", "#b8b8b8")
+        .attr("d", path)
+        .style("stroke", "#fff")
+        .style("stroke-width", 0.5)
+        .style("opacity", .7);
+
+    // Function to get the largest polygon of a feature
+    function getLargestPolygon(feature) {
+        let maxArea = 0;
+        let largestPolygon;
+
+        function polygonArea(coords) {
+            let area = 0;
+            for (let i = 0; i < coords.length - 1; i++) {
+                area += coords[i][0] * coords[i + 1][1] - coords[i + 1][0] * coords[i][1];
+            }
+            return Math.abs(area / 2);
         }
-        #map {
-            width: 100vw;
-            height: 100vh;
-        }
-        .country {
-            fill: #cccccc;
-            stroke: #333333;
-            stroke-width: 0.5;
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-</head>
-<body>
-    <div id="map"></div>
-    
-    <script>
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        
-        const svg = d3.select("#map")
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height);
-            
-        const projection = d3.geoMercator()
-            .scale(width / 6.2)
-            .center([0, 20])
-            .translate([width / 2, height / 2]);
-            
-        const path = d3.geoPath().projection(projection);
-        
-        // Définir une palette de couleurs
-        const color = d3.scaleOrdinal()
-            .domain(["Asia", "Europe", "Africa", "Americas", "Oceania"])
-            .range(d3.schemeSet2);
 
-        d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
-            .then(function(data) {
-                // Calculer la surface de chaque pays
-                data.features.forEach(d => {
-                    d.properties.area = path.area(d);
-                });
-
-                // Créer l'échelle pour la taille des cercles
-                const valueExtent = d3.extent(data.features, d => d.properties.area);
-                const size = d3.scaleSqrt()
-                    .domain(valueExtent)
-                    .range([2, 30]);  // Min et max taille des cercles en pixels
-
-                // Dessiner les pays
-                svg.selectAll("path")
-                    .data(data.features)
-                    .join("path")
-                    .attr("class", "country")
-                    .attr("d", path);
-
-                // Ajouter les cercles
-                svg.selectAll("circle")
-                    .data(data.features.sort((a, b) => b.properties.area - a.properties.area))
-                    .join("circle")
-                    .attr("cx", d => path.centroid(d)[0])
-                    .attr("cy", d => path.centroid(d)[1])
-                    .attr("r", d => size(d.properties.area))
-                    .style("fill", d => {
-                        // Déterminer le continent basé sur le pays
-                        let continent = "Other";
-                        if (d.properties.name) {
-                            const name = d.properties.name.toLowerCase();
-                            if (name.includes("china") || name.includes("japan") || name.includes("india")) continent = "Asia";
-                            else if (name.includes("france") || name.includes("germany") || name.includes("italy")) continent = "Europe";
-                            else if (name.includes("nigeria") || name.includes("egypt") || name.includes("kenya")) continent = "Africa";
-                            else if (name.includes("brazil") || name.includes("canada") || name.includes("united states")) continent = "Americas";
-                            else if (name.includes("australia") || name.includes("zealand")) continent = "Oceania";
-                        }
-                        return color(continent);
-                    })
-                    .attr("stroke", d => d.properties.area > valueExtent[1]/3 ? "black" : "none")
-                    .attr("stroke-width", 1)
-                    .attr("fill-opacity", 0.4);
-
-                // Gérer le redimensionnement
-                window.addEventListener('resize', function() {
-                    const width = window.innerWidth;
-                    const height = window.innerHeight;
-                    
-                    svg.attr("width", width)
-                       .attr("height", height);
-                    
-                    projection
-                        .scale(width / 6.2)
-                        .translate([width / 2, height / 2]);
-                    
-                    svg.selectAll("path")
-                       .attr("d", path);
-                    
-                    // Mettre à jour la position des cercles
-                    svg.selectAll("circle")
-                       .attr("cx", d => path.centroid(d)[0])
-                       .attr("cy", d => path.centroid(d)[1]);
-                });
+        if (feature.geometry.type === "Polygon") {
+            return feature.geometry.coordinates[0];
+        } else if (feature.geometry.type === "MultiPolygon") {
+            feature.geometry.coordinates.forEach(polygon => {
+                const area = polygonArea(polygon[0]);
+                if (area > maxArea) {
+                    maxArea = area;
+                    largestPolygon = polygon[0];
+                }
             });
-    </script>
-</body>
-</html>
+            return largestPolygon;
+        }
+        return null;
+    }
+
+    function getPolygonCenter(feature) {
+        const polygon = getLargestPolygon(feature);
+        if (!polygon) return null;
+
+        let sumLon = 0, sumLat = 0;
+        polygon.forEach(coord => {
+            sumLon += coord[0];
+            sumLat += coord[1];
+        });
+
+        return [sumLon / polygon.length, sumLat / polygon.length];
+    }
+
+    // Manual corrections for specific countries
+    const countryCorrections = {
+        "United States of America": [-95, 40],
+        "Canada": [-95, 55],
+        "Russia": [100, 60],
+        "France": [2, 47],
+        "Norway": [10, 62],
+        "Denmark": [10, 56],
+        "United Kingdom": [-2, 54],
+        "China": [105, 35],
+        "Brazil": [-55, -10],
+    };
+
+    // Add points for each country
+    svg.selectAll("circle")
+        .data(dataGeo.features)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d) {
+            if (countryCorrections[d.properties.name]) {
+                return projection(countryCorrections[d.properties.name])[0];
+            }
+            const center = getPolygonCenter(d);
+            return center ? projection(center)[0] : null;
+        })
+        .attr("cy", function(d) {
+            if (countryCorrections[d.properties.name]) {
+                return projection(countryCorrections[d.properties.name])[1];
+            }
+            const center = getPolygonCenter(d);
+            return center ? projection(center)[1] : null;
+        })
+        .attr("r", width/500)
+        .style("fill", "red")
+        .style("opacity", 0.8)
+        .style("stroke", "none");
+
+    // Add title
+    svg.append("text")
+        .attr("text-anchor", "end")
+        .style("fill", "black")
+        .attr("x", width - 40)
+        .attr("y", height - 30)
+        .attr("width", 90)
+        .html("COUNTRIES OF THE WORLD")
+        .style("font-size", width/60)
+        .style("font-family", "Arial");
+});
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    location.reload();
+});
+</script>
