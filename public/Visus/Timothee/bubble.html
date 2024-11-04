@@ -1,101 +1,86 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<title>Person Visualization</title>
-
-	<!-- import the d3 library -->
-    <script type='text/javascript' src='../../lib/d3.v5.min.js'></script>
-
-	<!-- style sheet -->
-	<link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #map {
+            width: 100vw;
+            height: calc(100vh - 40px);
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .country {
+            fill: #b8b8b8;
+            stroke: white;
+            stroke-width: 0.5;
+        }
+    </style>
 </head>
-
 <body>
-	<svg id="scene">
-        <g id='links'></g>
-        <g id='labels'></g>
-        <g id='nodes'></g>
-    </svg>
+    <div id="map"></div>
 
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
     <script>
-        let width = 1250,
-            height = 1050,
-            svg = d3.select('#scene').attr("width", width).attr("height", height);
+        const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+        const width = window.innerWidth - margin.left - margin.right;
+        const height = window.innerHeight - margin.top - margin.bottom - 40;
 
-        let persons;
+        const svg = d3.select('#map')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .style('display', 'block')
+            .style('margin', 'auto');
 
-        d3.json("../../data/data.json").then(data => {
-            persons = data.persons;
-            links = data.links;
-            familyLinks = data.family-links;
+        // Réduction du facteur d'échelle
+        const projection = d3.geoMercator()
+            .scale(Math.min(width, height * 2) / 6.5) // Réduction significative du zoom
+            .center([0, 20])
+            .translate([width / 2, height / 2]);
 
-            // Set the scales based on your data and SVG size
-            const scales = {
-                x: d3.scaleLinear().domain([0, 165]).range([0, width]),
-                y: d3.scaleLinear().domain([0, 125]).range([0, height]),
-                size: d3.scaleLinear().domain([0, 80]).range([20, 60]) // for age
-            };
+        const path = d3.geoPath().projection(projection);
 
-            // Shape function to choose between circle and square based on profession
-            function getShape(d) {
-                if (d.metier === "enseignant") {
-                    return 'circle';
-                } else if (d.metier === "écolier") {
-                    return 'rect';
-                } else {
-                    return 'triangle';  // for any other profession
-                }
-            }
+        function resize() {
+            const newWidth = window.innerWidth - margin.left - margin.right;
+            const newHeight = window.innerHeight - margin.top - margin.bottom - 40;
 
-            // Draw circles for persons
+            svg.attr('width', newWidth)
+               .attr('height', newHeight);
+
+            projection
+                .scale(Math.min(newWidth, newHeight * 2) / 6.5)
+                .translate([newWidth / 2, newHeight / 2]);
+
             svg.selectAll('path')
-                .data(persons)
-                .enter()
-                .append('path') // Use 'path' to handle different shapes
-                .attr('d', d => {
-                    if (getShape(d) === 'circle') {
-                        return d3.symbol().type(d3.symbolCircle)();  // for Engineer
-                    } else if (getShape(d) === 'rect') {
-                        return d3.symbol().type(d3.symbolSquare)();  // for Doctor
-                    } else {
-                        return d3.symbol().type(d3.symbolTriangle)();  // other
-                    }
-                })
-                .attr("transform", d => `translate(${scales.x(d.position.x)}, ${scales.y(d.position.y)})`)
-                .attr("stroke-width", 2)
-                .attr('stroke', 'black')
-                .attr('fill', d => d.permisArme == "oui" ? 'red' : 'green') // Color based on 'alibi'
-                .attr("size", d => scales.size(d.age))  // size determined by age
-                .attr('transform', d => `translate(${scales.x(d.position.x)}, ${scales.y(d.position.y)}) scale(${scales.size(d.age)/20})`);
+               .attr('d', path);
+        }
 
-            // Label group for names
-            let labelGroup = svg.selectAll('g.person')
-                .data(persons)
-                .enter()
-                .append('g')
-                .attr('class', 'person')
-                .attr("transform", d => `translate(${scales.x(d.position.x)}, ${scales.y(d.position.y)})`);
+        window.addEventListener('resize', resize);
 
-            // Add a rectangle behind the name
-            labelGroup.append('rect')
-                .attr('width', d => d.name.length * 10 + 5)
-                .attr('stroke-width', 2)
-                .attr('stroke', 'black')
-                .attr('height', 17)
-                .attr('fill', 'white');
-
-            // Add text (name)
-            labelGroup.append('text')
-                .text(d => d.name)
-                .attr('y', 13)
-                .attr('x', d => d.name.length * 10 + 2)
-                .attr('fill', 'black')
-                .attr('text-anchor', 'end')
-                .attr("font-size", ".8em");
-        });
-
+        fetch('https://raw.githubusercontent.com/janasayantan/datageojson/master/world.json')
+            .then(response => response.json())
+            .then(data => {
+                svg.selectAll('path')
+                    .data(data.features)
+                    .enter()
+                    .append('path')
+                    .attr('d', path)
+                    .attr('class', 'country');
+            })
+            .catch(error => {
+                console.error('Erreur de chargement:', error);
+                document.getElementById('map').innerHTML = 'Erreur de chargement de la carte';
+            });
     </script>
-
 </body>
 </html>
