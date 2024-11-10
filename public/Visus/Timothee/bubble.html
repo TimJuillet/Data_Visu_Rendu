@@ -7,15 +7,17 @@
 <body>
     <div class="controls">
         <select id="genreSelect"></select>
-        <select id="yearSelect"></select>
+    </div>
+    <div class="slider-container">
+        <label class="slider-label">Year</label>
+        <input type="range" id="yearSlider" class="year-slider">
+        <div id="year-display"></div>
     </div>
     <svg id="my_dataviz"></svg>
 
-    <!-- D3.js -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
-    <!-- TopoJSON -->
+    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
     <script src="https://unpkg.com/topojson@3.0.2/dist/topojson.min.js"></script>
-    <!-- Your script -->
     <script src="script.js"></script>
 </body>
 </html>

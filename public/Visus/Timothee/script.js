@@ -43,41 +43,14 @@ const countryCorrections = {
     "United Kingdom": [-2, 54],
     "China": [105, 35],
     "Brazil": [-55, -10],
+    "Ireland": [-8, 53],  // Ajouté pour l'Irlande
 };
-
-function updateYearOptions(genre) {
-    try {
-        const availableYears = Object.keys(genreData[genre] || {})
-            .filter(year => Object.keys(genreData[genre][year]).length > 0)
-            .sort();
-
-        console.log(`Available years for ${genre}:`, availableYears);
-
-        const yearSelect = d3.select("#yearSelect");
-        yearSelect.selectAll("option").remove();
-        
-        yearSelect
-            .selectAll("option")
-            .data(availableYears)
-            .enter()
-            .append("option")
-            .text(d => d)
-            .attr("value", d => d);
-
-        if (availableYears.length > 0) {
-            currentYear = availableYears[0];
-            yearSelect.property("value", currentYear);
-            updateBubbles();
-        }
-    } catch (error) {
-        console.error("Error updating year options:", error);
-    }
-}
 
 function updateBubbles() {
     try {
-        // Nettoyer les bulles existantes
+        // Nettoyer les bulles existantes et la légende
         bubbleGroup.selectAll("circle").remove();
+        svg.selectAll(".legend").remove();
 
         const yearData = genreData[currentGenre]?.[currentYear];
         if (!yearData) {
@@ -85,10 +58,8 @@ function updateBubbles() {
             return;
         }
 
-        console.log(`Updating bubbles for ${currentGenre} - ${currentYear}`, yearData);
-
         // Créer les données pour les bulles
-        const bubbleData = Object.entries(yearData)
+        const bubbleData = Object.entries(yearData.byCountry)
             .map(([country, value]) => ({
                 country,
                 value,
@@ -96,12 +67,9 @@ function updateBubbles() {
             }))
             .filter(d => d.coordinates !== null);
 
-        // Calculate max value for scaling
-        const maxValue = d3.max(bubbleData, d => d.value);
-
-        // Scale for bubble size
-        const bubbleScale = d3.scaleSqrt()
-            .domain([1, maxValue])
+        // Échelle fixe commune pour les bulles et la légende
+        const fixedScale = d3.scaleSqrt()
+            .domain([1, 300])
             .range([5, 50]);
 
         // Add new bubbles
@@ -111,7 +79,7 @@ function updateBubbles() {
             .append("circle")
             .attr("cx", d => projection(d.coordinates)[0])
             .attr("cy", d => projection(d.coordinates)[1])
-            .attr("r", d => bubbleScale(d.value))
+            .attr("r", d => fixedScale(Math.min(d.value, 300)))
             .style("fill", "red")
             .style("opacity", 0.6)
             .style("stroke", "white")
@@ -130,13 +98,158 @@ function updateBubbles() {
                     .style("opacity", 0);
             });
 
-        console.log("Bubbles updated successfully");
+        // Valeurs pour la légende
+        const valuesToShow = [1, 50, 300];
+
+        // Paramètres de position pour la légende
+        const legendGroup = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(20, ${height - 150})`);
+
+        const xCircle = 60;
+        const xLabel = 150;
+        const yCircle = 100;
+
+        // Ajouter le titre de la légende
+        legendGroup.append("text")
+            .attr("x", xCircle - 20)
+            .attr("y", -10)
+            .text("Number of releases")
+            .style("font-size", "12px")
+            .style("font-weight", "bold");
+
+        // Ajouter les cercles de la légende
+        legendGroup.selectAll("legend-circles")
+            .data(valuesToShow)
+            .enter()
+            .append("circle")
+            .attr("cx", xCircle)
+            .attr("cy", d => yCircle - fixedScale(d))
+            .attr("r", d => fixedScale(d))
+            .style("fill", "none")
+            .style("stroke", "black")
+            .style("opacity", 0.8);
+
+        // Ajouter les lignes de la légende
+        legendGroup.selectAll("legend-lines")
+            .data(valuesToShow)
+            .enter()
+            .append("line")
+            .attr("x1", d => xCircle + fixedScale(d))
+            .attr("x2", xLabel)
+            .attr("y1", d => yCircle - fixedScale(d))
+            .attr("y2", d => yCircle - fixedScale(d))
+            .style("stroke", "black")
+            .style("stroke-dasharray", "2,2");
+
+        // Ajouter les labels de la légende
+        legendGroup.selectAll("legend-labels")
+            .data(valuesToShow)
+            .enter()
+            .append("text")
+            .attr("x", xLabel + 5)
+            .attr("y", d => yCircle - fixedScale(d))
+            .text(d => d)
+            .style("font-size", "11px")
+            .attr("alignment-baseline", "middle");
+
+        // Ajouter l'information sur les données inconnues
+        legendGroup.append("text")
+            .attr("x", xLabel + 60)
+            .attr("y", yCircle - fixedScale(valuesToShow[1]))
+            .text(`Releases from unknown country: ${yearData.unknownCount}`)
+            .style("font-size", "12px")
+            .style("fill", "black");
+
+        // Ajouter le total des releases
+        legendGroup.append("text")
+            .attr("x", xLabel + 60)
+            .attr("y", yCircle - fixedScale(valuesToShow[1]) + 20)
+            .text(`Total releases: ${yearData.totalReleases}`)
+            .style("font-size", "12px")
+            .style("fill", "black");
+
+        // Update title
+        svg.selectAll(".map-title").remove();
+        svg.append("text")
+            .attr("class", "map-title")
+            .attr("text-anchor", "end")
+            .style("fill", "black")
+            .attr("x", width - 40)
+            .attr("y", height - 30)
+            .attr("width", 90)
+            .html(`${currentGenre} Releases (${currentYear})`)
+            .style("font-size", width/60)
+            .style("font-family", "Arial");
+
     } catch (error) {
         console.error("Error updating bubbles:", error);
     }
 }
 
-// Chargement des données avec d3.queue
+function hasDisplayableData(genre, year) {
+    if (!genreData[genre] || !genreData[genre][year]) return false;
+    
+    // Vérifie si au moins un pays a des données ET des coordonnées
+    return Object.entries(genreData[genre][year].byCountry).some(([country, value]) => {
+        return value > 0 && (countryCorrections[country] !== undefined);
+    });
+}
+
+function updateYearSlider(genre) {
+    try {
+        // Obtenir les années disponibles pour ce genre
+        const availableYears = Object.keys(genreData[genre] || {})
+            .filter(year => hasDisplayableData(genre, year))
+            .map(Number)
+            .sort((a, b) => a - b);
+
+        console.log(`Available years for ${genre}:`, availableYears);
+
+        if (availableYears.length === 0) {
+            console.log(`No available years found for genre ${genre}`);
+            return;
+        }
+
+        // Configurer le slider
+        const slider = d3.select("#yearSlider");
+        const yearDisplay = d3.select("#year-display");
+
+        // Stockage des années disponibles dans un attribut du slider
+        slider.node().availableYears = availableYears;
+
+        // Définir la valeur initiale
+        if (!currentYear || !availableYears.includes(Number(currentYear))) {
+            currentYear = availableYears[0];
+        }
+
+        // Configurer le slider
+        slider
+            .attr("min", 0)
+            .attr("max", availableYears.length - 1)
+            .attr("step", 1)
+            .attr("value", availableYears.indexOf(Number(currentYear)));
+
+        // Mettre à jour l'affichage de l'année
+        yearDisplay.text(currentYear);
+
+        // Gestionnaire d'événements pour le slider
+        slider.on("input", function() {
+            const availableYears = this.availableYears;
+            const index = parseInt(this.value);
+            currentYear = availableYears[index];
+            yearDisplay.text(currentYear);
+            updateBubbles();
+        });
+
+        updateBubbles();
+
+    } catch (error) {
+        console.error("Error updating year slider:", error);
+    }
+}
+
+// Chargement des données
 d3.queue()
     .defer(d3.json, "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json")
     .defer(d3.json, "../../data/Timothee.json")
@@ -146,8 +259,6 @@ d3.queue()
             console.error("Error loading data:", error);
             return;
         }
-
-        console.log("Data loaded, processing...");
 
         try {
             // Convertir les données du monde en features GeoJSON
@@ -164,15 +275,12 @@ d3.queue()
                 .style("stroke-width", 0.5)
                 .style("opacity", .7);
 
-            console.log("Map drawn successfully");
-
             // 1. Traiter les données de Timothee
             timotheeData.forEach(entry => {
                 if (entry.location?.country) {
-                    artistData[entry.name] = entry.location.country;
+                    artistData[entry.name] = entry.location;
                 }
             });
-            console.log("Processed artists:", Object.keys(artistData).length);
 
             // 2. Traiter les données de Guillaume
             Object.entries(guillaumeData).forEach(([key, value]) => {
@@ -180,37 +288,71 @@ d3.queue()
                 if (!match) return;
 
                 const [, mainGenre, year] = match;
-                console.log(`Processing ${mainGenre} - ${year}`);
+                const totalReleases = value[0];
                 
+                console.log(`Processing ${mainGenre} ${year}, total releases: ${totalReleases}`);
+
                 if (!genreData[mainGenre]) {
                     genreData[mainGenre] = {};
                 }
                 if (!genreData[mainGenre][year]) {
-                    genreData[mainGenre][year] = {};
+                    genreData[mainGenre][year] = {
+                        byCountry: {},
+                        unknownCount: 0,
+                        totalReleases: totalReleases
+                    };
                 }
 
-                // Traiter les données des artistes (dans value[2])
+                // Traiter les données des artistes
+                let processedReleases = 0;
                 const artistReleases = value[2];
+                
                 if (artistReleases) {
                     Object.entries(artistReleases).forEach(([artist, releases]) => {
-                        const country = artistData[artist];
-                        if (country) {
-                            if (!genreData[mainGenre][year][country]) {
-                                genreData[mainGenre][year][country] = 0;
+                        console.log(`Processing artist ${artist} with ${releases} releases`);
+                        const artistLocation = artistData[artist];
+                        processedReleases += releases;
+
+                        if (!artistLocation || !artistLocation.country || artistLocation.country === "") {
+                            genreData[mainGenre][year].unknownCount += releases;
+                            console.log(`Added ${releases} to unknown for ${artist}`);
+                        } else {
+                            const country = artistLocation.country;
+                            if (!genreData[mainGenre][year].byCountry[country]) {
+                                genreData[mainGenre][year].byCountry[country] = 0;
                             }
-                            genreData[mainGenre][year][country] += releases;
+                            genreData[mainGenre][year].byCountry[country] += releases;
+                            console.log(`Added ${releases} to ${country} for ${artist}`);
                         }
                     });
                 }
+
+                // Vérifier si toutes les releases sont comptabilisées
+                const mappedReleases = Object.values(genreData[mainGenre][year].byCountry)
+                    .reduce((sum, val) => sum + val, 0);
+                const totalMapped = mappedReleases + genreData[mainGenre][year].unknownCount;
+                
+                if (totalMapped < totalReleases) {
+                    const difference = totalReleases - totalMapped;
+                    genreData[mainGenre][year].unknownCount += difference;
+                    console.log(`Added ${difference} missing releases to unknown`);
+                }
+
+                console.log(`Final counts for ${mainGenre} ${year}:`, {
+                    total: totalReleases,
+                    mapped: mappedReleases,
+                    unknown: genreData[mainGenre][year].unknownCount
+                });
             });
 
-            // Filtrer les genres avec des données
-            const availableGenres = Object.keys(genreData).filter(genre => 
-                Object.keys(genreData[genre]).some(year => 
-                    Object.keys(genreData[genre][year]).length > 0
+            // Filtrer et trier les genres
+            const availableGenres = Object.keys(genreData)
+                .filter(genre => 
+                    Object.keys(genreData[genre]).some(year => 
+                        hasDisplayableData(genre, year)
+                    )
                 )
-            );
-            console.log("Available genres:", availableGenres);
+                .sort((a, b) => a.localeCompare(b, 'fr', {sensitivity: 'base'}));
 
             if (availableGenres.length === 0) {
                 throw new Error("No genres found with data");
@@ -225,22 +367,15 @@ d3.queue()
                 .text(d => d)
                 .attr("value", d => d);
 
-            // Set initial genre and year
+            // Set initial genre and update slider
             currentGenre = availableGenres[0];
             d3.select("#genreSelect").property("value", currentGenre);
-            
-            // Update year options and draw bubbles
-            updateYearOptions(currentGenre);
+            updateYearSlider(currentGenre);
 
-            // Add event listeners
+            // Add event listener for genre change
             d3.select("#genreSelect").on("change", function() {
                 currentGenre = this.value;
-                updateYearOptions(currentGenre);
-            });
-
-            d3.select("#yearSelect").on("change", function() {
-                currentYear = this.value;
-                updateBubbles();
+                updateYearSlider(currentGenre);
             });
 
         } catch (error) {
