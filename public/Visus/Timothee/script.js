@@ -207,9 +207,9 @@ function updateBubbles() {
         // Ajouter le titre de la légende
         legendGroup.append("text")
             .attr("x", xCircle - 45)
-            .attr("y", -40)
+            .attr("y", 20)
             .text("Number of releases")
-            .style("font-size", "12px")
+            .style("font-size", "17px")
             .style("font-weight", "bold")
             .style("opacity", 0)
             .style("opacity", 1);
@@ -260,7 +260,7 @@ function updateBubbles() {
             .attr("x", xLabel + 60)
             .attr("y", yCircle - fixedScale(valuesToShow[1]) - 20)
             .text(`Releases from unknown countries: ${yearData.unknownCount}`)
-            .style("font-size", "12px")
+            .style("font-size", "17px")
             .style("fill", "black")
             .style("opacity", 0)
             .style("opacity", 1);
@@ -270,7 +270,7 @@ function updateBubbles() {
             .attr("x", xLabel + 60)
             .attr("y", yCircle - fixedScale(valuesToShow[1]) + 0)
             .text(`Total releases: ${yearData.totalReleases}`)
-            .style("font-size", "12px")
+            .style("font-size", "17px")
             .style("fill", "black")
             .style("opacity", 0)
             .style("opacity", 1);
@@ -281,7 +281,7 @@ function updateBubbles() {
             .attr("x", xLabel + 60)
             .attr("y", yCircle - fixedScale(valuesToShow[1]) + 20)
             .text(`Unknown percentage: ${unknownPercentage}%`)
-            .style("font-size", "12px")
+            .style("font-size", "17px")
             .style("fill", "black")
             .style("opacity", 0)
             .style("opacity", 1);
