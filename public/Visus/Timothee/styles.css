@@ -18,20 +18,6 @@ body, html {
     padding: 10px;
     border-radius: 5px;
 }
-select {
-    margin: 5px;
-    padding: 5px;
-    font-size: 16px;
-}
-.tooltip {
-    position: absolute;
-    background: white;
-    border: 1px solid #ddd;
-    padding: 5px;
-    border-radius: 3px;
-    pointer-events: none;
-    opacity: 0;
-}
 .slider-container {
     position: fixed;
     bottom: 30px;
@@ -56,4 +42,18 @@ select {
 #year-display {
     margin-top: 10px;
     font-size: 16px;
+}
+select {
+    margin: 5px;
+    padding: 5px;
+    font-size: 16px;
+}
+.tooltip {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    padding: 5px;
+    border-radius: 3px;
+    pointer-events: none;
+    opacity: 0;
 }

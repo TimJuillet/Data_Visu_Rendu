@@ -43,8 +43,72 @@ const countryCorrections = {
     "United Kingdom": [-2, 54],
     "China": [105, 35],
     "Brazil": [-55, -10],
-    "Ireland": [-8, 53],  // Ajouté pour l'Irlande
+    "Ireland": [-8, 53]
 };
+
+function hasDisplayableData(genre, year) {
+    if (!genreData[genre] || !genreData[genre][year]) return false;
+    
+    const yearData = genreData[genre][year];
+    const hasDisplayableCountries = Object.entries(yearData.byCountry).some(([country]) => {
+        return countryCorrections[country] !== undefined;
+    });
+    
+    return hasDisplayableCountries || yearData.unknownCount > 0;
+}
+
+function updateYearSlider(genre) {
+    try {
+        // Obtenir les années disponibles pour ce genre
+        const availableYears = Object.keys(genreData[genre] || {})
+            .filter(year => hasDisplayableData(genre, year))
+            .map(Number)
+            .sort((a, b) => a - b);
+
+        console.log(`Available years for ${genre}:`, availableYears);
+
+        if (availableYears.length === 0) {
+            console.log(`No available years found for genre ${genre}`);
+            return;
+        }
+
+        // Configurer le slider
+        const slider = d3.select("#yearSlider");
+        const yearDisplay = d3.select("#year-display");
+
+        // Stockage des années disponibles dans un attribut du slider
+        slider.node().availableYears = availableYears;
+
+        // Définir la valeur initiale
+        if (!currentYear || !availableYears.includes(Number(currentYear))) {
+            currentYear = availableYears[0];
+        }
+
+        // Configurer le slider
+        slider
+            .attr("min", 0)
+            .attr("max", availableYears.length - 1)
+            .attr("step", 1)
+            .attr("value", availableYears.indexOf(Number(currentYear)));
+
+        // Mettre à jour l'affichage de l'année
+        yearDisplay.text(currentYear);
+
+        // Gestionnaire d'événements pour le slider
+        slider.on("input", function() {
+            const availableYears = this.availableYears;
+            const index = parseInt(this.value);
+            currentYear = availableYears[index];
+            yearDisplay.text(currentYear);
+            updateBubbles();
+        });
+
+        updateBubbles();
+
+    } catch (error) {
+        console.error("Error updating year slider:", error);
+    }
+}
 
 function updateBubbles() {
     try {
@@ -169,6 +233,14 @@ function updateBubbles() {
             .style("font-size", "12px")
             .style("fill", "black");
 
+            const unknownPercentage = ((yearData.unknownCount / yearData.totalReleases) * 100).toFixed(1);
+        legendGroup.append("text")
+            .attr("x", xLabel + 60)
+            .attr("y", yCircle - fixedScale(valuesToShow[1]) + 40)
+            .text(`Unknown percentage: ${unknownPercentage}%`)
+            .style("font-size", "12px")
+            .style("fill", "black");
+
         // Update title
         svg.selectAll(".map-title").remove();
         svg.append("text")
@@ -184,68 +256,6 @@ function updateBubbles() {
 
     } catch (error) {
         console.error("Error updating bubbles:", error);
-    }
-}
-
-function hasDisplayableData(genre, year) {
-    if (!genreData[genre] || !genreData[genre][year]) return false;
-    
-    // Vérifie si au moins un pays a des données ET des coordonnées
-    return Object.entries(genreData[genre][year].byCountry).some(([country, value]) => {
-        return value > 0 && (countryCorrections[country] !== undefined);
-    });
-}
-
-function updateYearSlider(genre) {
-    try {
-        // Obtenir les années disponibles pour ce genre
-        const availableYears = Object.keys(genreData[genre] || {})
-            .filter(year => hasDisplayableData(genre, year))
-            .map(Number)
-            .sort((a, b) => a - b);
-
-        console.log(`Available years for ${genre}:`, availableYears);
-
-        if (availableYears.length === 0) {
-            console.log(`No available years found for genre ${genre}`);
-            return;
-        }
-
-        // Configurer le slider
-        const slider = d3.select("#yearSlider");
-        const yearDisplay = d3.select("#year-display");
-
-        // Stockage des années disponibles dans un attribut du slider
-        slider.node().availableYears = availableYears;
-
-        // Définir la valeur initiale
-        if (!currentYear || !availableYears.includes(Number(currentYear))) {
-            currentYear = availableYears[0];
-        }
-
-        // Configurer le slider
-        slider
-            .attr("min", 0)
-            .attr("max", availableYears.length - 1)
-            .attr("step", 1)
-            .attr("value", availableYears.indexOf(Number(currentYear)));
-
-        // Mettre à jour l'affichage de l'année
-        yearDisplay.text(currentYear);
-
-        // Gestionnaire d'événements pour le slider
-        slider.on("input", function() {
-            const availableYears = this.availableYears;
-            const index = parseInt(this.value);
-            currentYear = availableYears[index];
-            yearDisplay.text(currentYear);
-            updateBubbles();
-        });
-
-        updateBubbles();
-
-    } catch (error) {
-        console.error("Error updating year slider:", error);
     }
 }
 
@@ -275,10 +285,16 @@ d3.queue()
                 .style("stroke-width", 0.5)
                 .style("opacity", .7);
 
-            // 1. Traiter les données de Timothee
+            // 1. Traiter les données de Timothee en utilisant le country_mapping
             timotheeData.forEach(entry => {
                 if (entry.location?.country) {
-                    artistData[entry.name] = entry.location;
+                    const mappedCountry = country_mapping[entry.location.country];
+                    if (mappedCountry) {
+                        artistData[entry.name] = {
+                            ...entry.location,
+                            country: mappedCountry
+                        };
+                    }
                 }
             });
 
@@ -289,9 +305,9 @@ d3.queue()
 
                 const [, mainGenre, year] = match;
                 const totalReleases = value[0];
+                const subGenres = value[1];
+                const artistReleases = value[2];
                 
-                console.log(`Processing ${mainGenre} ${year}, total releases: ${totalReleases}`);
-
                 if (!genreData[mainGenre]) {
                     genreData[mainGenre] = {};
                 }
@@ -303,55 +319,48 @@ d3.queue()
                     };
                 }
 
-                // Traiter les données des artistes
                 let processedReleases = 0;
-                const artistReleases = value[2];
+                let mappedArtists = 0;
+                let unknownArtists = 0;
                 
                 if (artistReleases) {
                     Object.entries(artistReleases).forEach(([artist, releases]) => {
-                        console.log(`Processing artist ${artist} with ${releases} releases`);
-                        const artistLocation = artistData[artist];
                         processedReleases += releases;
+                        const artistLocation = artistData[artist];
 
-                        if (!artistLocation || !artistLocation.country || artistLocation.country === "") {
+                        if (!artistLocation || !artistLocation.country || 
+                            !countryCorrections[artistLocation.country]) {
                             genreData[mainGenre][year].unknownCount += releases;
-                            console.log(`Added ${releases} to unknown for ${artist}`);
+                            unknownArtists++;
                         } else {
                             const country = artistLocation.country;
                             if (!genreData[mainGenre][year].byCountry[country]) {
                                 genreData[mainGenre][year].byCountry[country] = 0;
                             }
                             genreData[mainGenre][year].byCountry[country] += releases;
-                            console.log(`Added ${releases} to ${country} for ${artist}`);
+                            mappedArtists++;
                         }
                     });
                 }
 
-                // Vérifier si toutes les releases sont comptabilisées
-                const mappedReleases = Object.values(genreData[mainGenre][year].byCountry)
-                    .reduce((sum, val) => sum + val, 0);
-                const totalMapped = mappedReleases + genreData[mainGenre][year].unknownCount;
-                
-                if (totalMapped < totalReleases) {
-                    const difference = totalReleases - totalMapped;
+                // Si certaines releases n'ont pas été comptabilisées, les ajouter aux inconnues
+                if (processedReleases < totalReleases) {
+                    const difference = totalReleases - processedReleases;
                     genreData[mainGenre][year].unknownCount += difference;
-                    console.log(`Added ${difference} missing releases to unknown`);
                 }
-
-                console.log(`Final counts for ${mainGenre} ${year}:`, {
-                    total: totalReleases,
-                    mapped: mappedReleases,
-                    unknown: genreData[mainGenre][year].unknownCount
-                });
             });
 
             // Filtrer et trier les genres
             const availableGenres = Object.keys(genreData)
-                .filter(genre => 
-                    Object.keys(genreData[genre]).some(year => 
+                .filter(genre => {
+                    const hasData = Object.keys(genreData[genre]).some(year => 
                         hasDisplayableData(genre, year)
-                    )
-                )
+                    );
+                    if (!hasData) {
+                        console.log(`Genre ${genre} filtered out: no displayable data`);
+                    }
+                    return hasData;
+                })
                 .sort((a, b) => a.localeCompare(b, 'fr', {sensitivity: 'base'}));
 
             if (availableGenres.length === 0) {
@@ -380,6 +389,7 @@ d3.queue()
 
         } catch (error) {
             console.error("Error processing data:", error);
+            console.error("Error details:", error.stack);
         }
     });
 
