@@ -109,8 +109,9 @@ function updateYearSlider(genre) {
 
 function updateBubbles() {
     try {
-        // Nettoyer les bulles existantes
+        // Nettoyer les bulles existantes et la légende
         bubbleGroup.selectAll("circle").remove();
+        svg.selectAll(".legend").remove();
 
         const yearData = genreData[currentGenre]?.[currentYear];
         if (!yearData) {
@@ -127,22 +128,19 @@ function updateBubbles() {
             }))
             .filter(d => d.coordinates !== null);
 
-        // Calculate max value for scaling
-        const maxValue = d3.max(bubbleData, d => d.value);
-
-        // Scale for bubble size
-        const bubbleScale = d3.scaleSqrt()
-            .domain([1, maxValue])
+        // Échelle fixe commune pour les bulles et la légende
+        const fixedScale = d3.scaleSqrt()
+            .domain([1, 300])  // Changé de 1000 à 300
             .range([5, 50]);
 
-        // Add new bubbles
+        // Add new bubbles en utilisant l'échelle fixe
         bubbleGroup.selectAll("circle")
             .data(bubbleData)
             .enter()
             .append("circle")
             .attr("cx", d => projection(d.coordinates)[0])
             .attr("cy", d => projection(d.coordinates)[1])
-            .attr("r", d => bubbleScale(d.value))
+            .attr("r", d => fixedScale(Math.min(d.value, 300))) // Limite à 300
             .style("fill", "red")
             .style("opacity", 0.6)
             .style("stroke", "white")
@@ -160,6 +158,71 @@ function updateBubbles() {
                     .duration(500)
                     .style("opacity", 0);
             });
+
+        // Nouvelles valeurs pour la légende
+        const valuesToShow = [1, 50, 300];
+
+        // Paramètres de position pour la légende
+        const legendGroup = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(20, ${height - 150})`);
+
+        const xCircle = 60;
+        const xLabel = 150;
+        const yCircle = 100;
+
+        // Ajouter le titre de la légende
+        legendGroup.append("text")
+            .attr("x", xCircle - 20)
+            .attr("y", -10)
+            .text("Number of releases")
+            .style("font-size", "12px")
+            .style("font-weight", "bold");
+
+        // Ajouter les cercles de la légende
+        legendGroup.selectAll("legend-circles")
+            .data(valuesToShow)
+            .enter()
+            .append("circle")
+            .attr("cx", xCircle)
+            .attr("cy", d => yCircle - fixedScale(d))
+            .attr("r", d => fixedScale(d))
+            .style("fill", "none")
+            .style("stroke", "black")
+            .style("opacity", 0.8);
+
+        // Ajouter les lignes de la légende
+        legendGroup.selectAll("legend-lines")
+            .data(valuesToShow)
+            .enter()
+            .append("line")
+            .attr("x1", d => xCircle + fixedScale(d))
+            .attr("x2", xLabel)
+            .attr("y1", d => yCircle - fixedScale(d))
+            .attr("y2", d => yCircle - fixedScale(d))
+            .style("stroke", "black")
+            .style("stroke-dasharray", "2,2");
+
+        // Ajouter les labels de la légende
+        legendGroup.selectAll("legend-labels")
+            .data(valuesToShow)
+            .enter()
+            .append("text")
+            .attr("x", xLabel + 5)
+            .attr("y", d => yCircle - fixedScale(d))
+            .text(d => d)
+            .style("font-size", "11px")
+            .attr("alignment-baseline", "middle");
+
+        const unknownCount = yearData.unknownCount || 0;
+        
+        // Ajouter le texte des données inconnues
+        legendGroup.append("text")
+            .attr("x", xLabel + 60)  // Positionné à droite de la légende
+            .attr("y", yCircle - fixedScale(valuesToShow[1]))  // Aligné avec le cercle du milieu
+            .text(`Releases from unknown country: ${unknownCount}`)
+            .style("font-size", "12px")
+            .style("fill", "black");
 
         // Update title
         svg.selectAll(".map-title").remove();
@@ -216,7 +279,7 @@ d3.queue()
             Object.entries(guillaumeData).forEach(([key, value]) => {
                 const match = key.match(/\('([^']+)',\s*'(\d+)'\)/);
                 if (!match) return;
-
+            
                 const [, mainGenre, year] = match;
                 
                 if (!genreData[mainGenre]) {
@@ -224,14 +287,18 @@ d3.queue()
                 }
                 if (!genreData[mainGenre][year]) {
                     genreData[mainGenre][year] = {};
+                    genreData[mainGenre][year].unknownCount = 0; // Initialiser le compteur unknown
                 }
-
-                // Traiter les données des artistes
+            
+                // Traiter les données des artistes (dans value[2])
                 const artistReleases = value[2];
                 if (artistReleases) {
                     Object.entries(artistReleases).forEach(([artist, releases]) => {
                         const country = artistData[artist];
-                        if (country && countryCorrections[country]) {
+                        if (!country || country === "") {
+                            // Ajouter au compteur unknown
+                            genreData[mainGenre][year].unknownCount += releases;
+                        } else if (countryCorrections[country]) {
                             if (!genreData[mainGenre][year][country]) {
                                 genreData[mainGenre][year][country] = 0;
                             }
@@ -239,8 +306,7 @@ d3.queue()
                         }
                     });
                 }
-
-                // Supprimer les années sans données affichables
+                                // Supprimer les années sans données affichables
                 if (!hasDisplayableData(mainGenre, year)) {
                     delete genreData[mainGenre][year];
                 }
