@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Bubble Chart with Search</title>
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <style>
+        /* Styles pour centrer le graphique et ajouter le formulaire */
+        #my_dataviz {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Position du formulaire en haut à droite */
+        #search-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Formulaire de recherche en haut à droite -->
+    <div id="search-container">
+        <input type="text" id="yearInput" placeholder="Entrez une année">
+        <select id="musicStyle">
+            <option value="">Choisissez un style</option>
+            <option value="rock">Rock</option>
+            <option value="pop">Pop</option>
+            <option value="jazz">Jazz</option>
+            <option value="hiphop">Hip-Hop</option>
+            <option value="classical">Classique</option>
+            <!-- Ajoutez plus d'options de style si nécessaire -->
+        </select>
+        <button id="searchButton">Rechercher</button>
+    </div>
+
+    <!-- Conteneur pour le graphique -->
+    <div id="my_dataviz"></div>
+
+    <script>
+        // Définir les dimensions du graphique
+        var width = 450,
+            height = 450,
+            margin = 40;
+
+        var radius = Math.min(width, height) / 2 - margin;
+
+        var svg = d3.select("#my_dataviz")
+          .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+          .append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+        var data = {a: 9, b: 20, c: 30, d: 8, e: 12, f: 3, g: 7, h: 14};
+
+        var color = d3.scaleOrdinal()
+          .domain(Object.keys(data))
+          .range(d3.schemeDark2);
+
+        var pie = d3.pie().sort(null).value(function(d) { return d.value; });
+        var data_ready = pie(d3.entries(data));
+
+        var arc = d3.arc()
+          .innerRadius(radius * 0.5)
+          .outerRadius(radius * 0.8);
+
+        var outerArc = d3.arc()
+          .innerRadius(radius * 0.9)
+          .outerRadius(radius * 0.9);
+
+        svg.selectAll('allSlices')
+          .data(data_ready)
+          .enter()
+          .append('path')
+            .attr('d', arc)
+            .attr('fill', function(d) { return color(d.data.key); })
+            .attr("stroke", "white")
+            .style("stroke-width", "2px")
+            .style("opacity", 0.7);
+
+        svg.selectAll('allPolylines')
+          .data(data_ready)
+          .enter()
+          .append('polyline')
+            .attr("stroke", "black")
+            .style("fill", "none")
+            .attr("stroke-width", 1)
+            .attr('points', function(d) {
+              var posA = arc.centroid(d);
+              var posB = outerArc.centroid(d);
+              var posC = outerArc.centroid(d);
+              var midangle = d.startAngle + (d.endAngle - d.startAngle) / 2;
+              posC[0] = radius * 0.95 * (midangle < Math.PI ? 1 : -1);
+              return [posA, posB, posC];
+            });
+
+        svg.selectAll('allLabels')
+          .data(data_ready)
+          .enter()
+          .append('text')
+            .text(function(d) { return d.data.key; })
+            .attr('transform', function(d) {
+                var pos = outerArc.centroid(d);
+                var midangle = d.startAngle + (d.endAngle - d.startAngle) / 2;
+                pos[0] = radius * 0.99 * (midangle < Math.PI ? 1 : -1);
+                return 'translate(' + pos + ')';
+            })
+            .style('text-anchor', function(d) {
+                var midangle = d.startAngle + (d.endAngle - d.startAngle) / 2;
+                return (midangle < Math.PI ? 'start' : 'end');
+            });
+
+        // Event listener pour le bouton de recherche
+        document.getElementById('searchButton').addEventListener('click', function() {
+            var year = document.getElementById('yearInput').value;
+            var style = document.getElementById('musicStyle').value;
+
+            console.log("Année:", year, "Style:", style);
+
+            // Ici, vous pouvez appeler une fonction pour mettre à jour les données du graphique
+            // en fonction de l'année et du style choisis.
+        });
+    </script>
+</body>
+</html>
