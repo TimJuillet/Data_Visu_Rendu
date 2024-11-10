@@ -45,14 +45,31 @@ const countryCorrections = {
     "Brazil": [-55, -10],
 };
 
+function hasDisplayableData(genre, year) {
+    // Vérifie si un genre/année a des données qui peuvent être affichées sur la carte
+    if (!genreData[genre] || !genreData[genre][year]) return false;
+    
+    // Vérifie si au moins un pays a des données ET des coordonnées
+    return Object.entries(genreData[genre][year]).some(([country, value]) => {
+        return value > 0 && (countryCorrections[country] !== undefined);
+    });
+}
+
 function updateYearOptions(genre) {
     try {
-        const availableYears = Object.keys(genreData[genre] || {})
-            .filter(year => Object.keys(genreData[genre][year]).length > 0)
-            .sort();
+        // Obtenir toutes les années disponibles pour ce genre
+        const allYears = Object.keys(genreData[genre] || {});
 
-        console.log(`Available years for ${genre}:`, availableYears);
+        // Filtrer les années qui ont des données affichables
+        const availableYears = allYears.filter(year => {
+            const hasData = hasDisplayableData(genre, year);
+            console.log(`Year ${year} has displayable data:`, hasData);
+            return hasData;
+        }).sort((a, b) => a - b);  // Trier numériquement
 
+        console.log(`Final available years for ${genre}:`, availableYears);
+
+        // Mettre à jour le sélecteur d'années
         const yearSelect = d3.select("#yearSelect");
         yearSelect.selectAll("option").remove();
         
@@ -65,9 +82,14 @@ function updateYearOptions(genre) {
             .attr("value", d => d);
 
         if (availableYears.length > 0) {
-            currentYear = availableYears[0];
+            // Si l'année courante n'est pas dans les années disponibles, prendre la première
+            if (!availableYears.includes(currentYear)) {
+                currentYear = availableYears[0];
+            }
             yearSelect.property("value", currentYear);
             updateBubbles();
+        } else {
+            console.log(`No available years found for genre ${genre}`);
         }
     } catch (error) {
         console.error("Error updating year options:", error);
@@ -130,6 +152,19 @@ function updateBubbles() {
                     .style("opacity", 0);
             });
 
+        // Update title
+        svg.selectAll(".map-title").remove();
+        svg.append("text")
+            .attr("class", "map-title")
+            .attr("text-anchor", "end")
+            .style("fill", "black")
+            .attr("x", width - 40)
+            .attr("y", height - 30)
+            .attr("width", 90)
+            .html(`${currentGenre} Releases (${currentYear})`)
+            .style("font-size", width/60)
+            .style("font-family", "Arial");
+
         console.log("Bubbles updated successfully");
     } catch (error) {
         console.error("Error updating bubbles:", error);
@@ -178,9 +213,8 @@ d3.queue()
             Object.entries(guillaumeData).forEach(([key, value]) => {
                 const match = key.match(/\('([^']+)',\s*'(\d+)'\)/);
                 if (!match) return;
-
+            
                 const [, mainGenre, year] = match;
-                console.log(`Processing ${mainGenre} - ${year}`);
                 
                 if (!genreData[mainGenre]) {
                     genreData[mainGenre] = {};
@@ -188,19 +222,24 @@ d3.queue()
                 if (!genreData[mainGenre][year]) {
                     genreData[mainGenre][year] = {};
                 }
-
+            
                 // Traiter les données des artistes (dans value[2])
                 const artistReleases = value[2];
                 if (artistReleases) {
                     Object.entries(artistReleases).forEach(([artist, releases]) => {
                         const country = artistData[artist];
-                        if (country) {
+                        if (country && countryCorrections[country]) { // Vérifie si le pays a des coordonnées
                             if (!genreData[mainGenre][year][country]) {
                                 genreData[mainGenre][year][country] = 0;
                             }
                             genreData[mainGenre][year][country] += releases;
                         }
                     });
+                }
+            
+                // Supprimer les années sans données affichables
+                if (!hasDisplayableData(mainGenre, year)) {
+                    delete genreData[mainGenre][year];
                 }
             });
 
