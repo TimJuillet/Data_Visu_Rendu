@@ -5,12 +5,11 @@ const height = window.innerHeight;
 // Initialize data structures
 let artistData = {};
 let genreData = {};
-let countryData = {};
 let currentGenre = '';
 let currentYear = '';
 
 // The svg
-const svg = d3.select("svg")
+const svg = d3.select("#my_dataviz")
     .attr("width", width)
     .attr("height", height);
 
@@ -46,37 +45,59 @@ const countryCorrections = {
     "Brazil": [-55, -10],
 };
 
-function drawMap(worldData) {
+function updateYearOptions(genre) {
     try {
-        mapGroup.selectAll("path")
-            .data(worldData.features)
+        const availableYears = Object.keys(genreData[genre] || {})
+            .filter(year => Object.keys(genreData[genre][year]).length > 0)
+            .sort();
+
+        console.log(`Available years for ${genre}:`, availableYears);
+
+        const yearSelect = d3.select("#yearSelect");
+        yearSelect.selectAll("option").remove();
+        
+        yearSelect
+            .selectAll("option")
+            .data(availableYears)
             .enter()
-            .append("path")
-            .attr("fill", "#b8b8b8")
-            .attr("d", path)
-            .style("stroke", "#fff")
-            .style("stroke-width", 0.5)
-            .style("opacity", .7);
+            .append("option")
+            .text(d => d)
+            .attr("value", d => d);
+
+        if (availableYears.length > 0) {
+            currentYear = availableYears[0];
+            yearSelect.property("value", currentYear);
+            updateBubbles();
+        }
     } catch (error) {
-        console.error("Error drawing map:", error);
+        console.error("Error updating year options:", error);
     }
 }
 
 function updateBubbles() {
     try {
-        // Remove existing bubbles
+        // Nettoyer les bulles existantes
         bubbleGroup.selectAll("circle").remove();
 
-        if (!genreData[currentGenre] || !genreData[currentGenre][currentYear]) {
-            console.error("No data for current selection:", currentGenre, currentYear);
+        const yearData = genreData[currentGenre]?.[currentYear];
+        if (!yearData) {
+            console.error("No data for", currentGenre, currentYear);
             return;
         }
 
+        console.log(`Updating bubbles for ${currentGenre} - ${currentYear}`, yearData);
+
+        // Créer les données pour les bulles
+        const bubbleData = Object.entries(yearData)
+            .map(([country, value]) => ({
+                country,
+                value,
+                coordinates: countryCorrections[country] || null
+            }))
+            .filter(d => d.coordinates !== null);
+
         // Calculate max value for scaling
-        let maxValue = 0;
-        Object.values(genreData[currentGenre][currentYear]).forEach(value => {
-            maxValue = Math.max(maxValue, value);
-        });
+        const maxValue = d3.max(bubbleData, d => d.value);
 
         // Scale for bubble size
         const bubbleScale = d3.scaleSqrt()
@@ -84,150 +105,147 @@ function updateBubbles() {
             .range([5, 50]);
 
         // Add new bubbles
-        Object.entries(genreData[currentGenre][currentYear]).forEach(([country, value]) => {
-            const coords = countryCorrections[country] || getCountryCenter(country);
-            if (coords) {
-                const [x, y] = projection(coords);
-                
-                bubbleGroup.append("circle")
-                    .attr("cx", x)
-                    .attr("cy", y)
-                    .attr("r", bubbleScale(value))
-                    .style("fill", "red")
-                    .style("opacity", 0.6)
-                    .style("stroke", "white")
-                    .style("stroke-width", 1)
-                    .on("mouseover", function() {
-                        tooltip.transition()
-                            .duration(200)
-                            .style("opacity", .9);
-                        tooltip.html(`${country}<br/>${value} artists`)
-                            .style("left", (d3.event.pageX + 10) + "px")
-                            .style("top", (d3.event.pageY - 28) + "px");
-                    })
-                    .on("mouseout", function() {
-                        tooltip.transition()
-                            .duration(500)
-                            .style("opacity", 0);
-                    });
-            }
-        });
+        bubbleGroup.selectAll("circle")
+            .data(bubbleData)
+            .enter()
+            .append("circle")
+            .attr("cx", d => projection(d.coordinates)[0])
+            .attr("cy", d => projection(d.coordinates)[1])
+            .attr("r", d => bubbleScale(d.value))
+            .style("fill", "red")
+            .style("opacity", 0.6)
+            .style("stroke", "white")
+            .style("stroke-width", 1)
+            .on("mouseover", function(d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(`${d.country}<br/>${d.value} releases`)
+                    .style("left", (d3.event.pageX + 10) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
+            })
+            .on("mouseout", function() {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
 
-        // Update title
-        svg.selectAll(".map-title").remove();
-        svg.append("text")
-            .attr("class", "map-title")
-            .attr("text-anchor", "end")
-            .style("fill", "black")
-            .attr("x", width - 40)
-            .attr("y", height - 30)
-            .attr("width", 90)
-            .html(`${currentGenre} Artists (${currentYear})`)
-            .style("font-size", width/60)
-            .style("font-family", "Arial");
+        console.log("Bubbles updated successfully");
     } catch (error) {
         console.error("Error updating bubbles:", error);
     }
 }
 
-function getCountryCenter(country) {
-    return countryCorrections[country] || null;
-}
-
-// Load data files using d3.queue
+// Chargement des données avec d3.queue
 d3.queue()
-    .defer(d3.json, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
+    .defer(d3.json, "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json")
     .defer(d3.json, "../../data/Timothee.json")
     .defer(d3.json, "../../data/Guillaume.json")
-    .await(function(error, worldData, timotheeData, guillaumeData) {
+    .await(function(error, world, timotheeData, guillaumeData) {
         if (error) {
             console.error("Error loading data:", error);
             return;
         }
 
-        console.log("Data loaded successfully");
-        
-        // Process Timothee's data
-        if (Array.isArray(timotheeData)) {
-            timotheeData.forEach(artist => {
-                if (artist.location && artist.location.country) {
-                    artistData[artist.name] = artist.location.country;
+        console.log("Data loaded, processing...");
+
+        try {
+            // Convertir les données du monde en features GeoJSON
+            const countries = topojson.feature(world, world.objects.countries);
+            
+            // Dessiner la carte de base
+            mapGroup.selectAll("path")
+                .data(countries.features)
+                .enter()
+                .append("path")
+                .attr("fill", "#b8b8b8")
+                .attr("d", path)
+                .style("stroke", "#fff")
+                .style("stroke-width", 0.5)
+                .style("opacity", .7);
+
+            console.log("Map drawn successfully");
+
+            // 1. Traiter les données de Timothee
+            timotheeData.forEach(entry => {
+                if (entry.location?.country) {
+                    artistData[entry.name] = entry.location.country;
                 }
             });
-        }
+            console.log("Processed artists:", Object.keys(artistData).length);
 
-        // Process Guillaume's data
-        Object.entries(guillaumeData).forEach(([key, value]) => {
-            const cleanKey = key.replace(/[()'\s]/g, '');
-            const [genre, year] = cleanKey.split(',');
-            
-            if (!genreData[genre]) {
-                genreData[genre] = {};
-            }
-            if (!genreData[genre][year]) {
-                genreData[genre][year] = {};
-            }
+            // 2. Traiter les données de Guillaume
+            Object.entries(guillaumeData).forEach(([key, value]) => {
+                const match = key.match(/\('([^']+)',\s*'(\d+)'\)/);
+                if (!match) return;
 
-            if (Array.isArray(value) && value[1]) {
-                Object.entries(value[1]).forEach(([artist, count]) => {
-                    const country = artistData[artist];
-                    if (country) {
-                        if (!genreData[genre][year][country]) {
-                            genreData[genre][year][country] = 0;
+                const [, mainGenre, year] = match;
+                console.log(`Processing ${mainGenre} - ${year}`);
+                
+                if (!genreData[mainGenre]) {
+                    genreData[mainGenre] = {};
+                }
+                if (!genreData[mainGenre][year]) {
+                    genreData[mainGenre][year] = {};
+                }
+
+                // Traiter les données des artistes (dans value[2])
+                const artistReleases = value[2];
+                if (artistReleases) {
+                    Object.entries(artistReleases).forEach(([artist, releases]) => {
+                        const country = artistData[artist];
+                        if (country) {
+                            if (!genreData[mainGenre][year][country]) {
+                                genreData[mainGenre][year][country] = 0;
+                            }
+                            genreData[mainGenre][year][country] += releases;
                         }
-                        genreData[genre][year][country] += count;
-                    }
-                });
+                    });
+                }
+            });
+
+            // Filtrer les genres avec des données
+            const availableGenres = Object.keys(genreData).filter(genre => 
+                Object.keys(genreData[genre]).some(year => 
+                    Object.keys(genreData[genre][year]).length > 0
+                )
+            );
+            console.log("Available genres:", availableGenres);
+
+            if (availableGenres.length === 0) {
+                throw new Error("No genres found with data");
             }
-        });
 
-        const genres = Object.keys(genreData);
-        if (genres.length === 0) {
-            console.error("No genres found in processed data");
-            return;
+            // Populate genre dropdown
+            d3.select("#genreSelect")
+                .selectAll("option")
+                .data(availableGenres)
+                .enter()
+                .append("option")
+                .text(d => d)
+                .attr("value", d => d);
+
+            // Set initial genre and year
+            currentGenre = availableGenres[0];
+            d3.select("#genreSelect").property("value", currentGenre);
+            
+            // Update year options and draw bubbles
+            updateYearOptions(currentGenre);
+
+            // Add event listeners
+            d3.select("#genreSelect").on("change", function() {
+                currentGenre = this.value;
+                updateYearOptions(currentGenre);
+            });
+
+            d3.select("#yearSelect").on("change", function() {
+                currentYear = this.value;
+                updateBubbles();
+            });
+
+        } catch (error) {
+            console.error("Error processing data:", error);
         }
-
-        const years = Object.keys(genreData[genres[0]] || {});
-        if (years.length === 0) {
-            console.error("No years found for first genre");
-            return;
-        }
-
-        // Populate select dropdowns
-        d3.select("#genreSelect")
-            .selectAll("option")
-            .data(genres)
-            .enter()
-            .append("option")
-            .text(d => d)
-            .attr("value", d => d);
-
-        d3.select("#yearSelect")
-            .selectAll("option")
-            .data(years)
-            .enter()
-            .append("option")
-            .text(d => d)
-            .attr("value", d => d);
-
-        // Set initial values
-        currentGenre = genres[0];
-        currentYear = years[0];
-
-        // Draw initial map
-        drawMap(worldData);
-        updateBubbles();
-
-        // Add event listeners
-        d3.select("#genreSelect").on("change", function() {
-            currentGenre = this.value;
-            updateBubbles();
-        });
-
-        d3.select("#yearSelect").on("change", function() {
-            currentYear = this.value;
-            updateBubbles();
-        });
     });
 
 // Handle window resize
