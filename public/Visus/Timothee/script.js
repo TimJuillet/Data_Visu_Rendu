@@ -133,8 +133,8 @@ function updateBubbles() {
 
         // Échelle fixe commune pour les bulles et la légende
         const fixedScale = d3.scaleSqrt()
-            .domain([1, 300])
-            .range([5, 50]);
+            .domain([1, 5000])
+            .range([1, 150]);
 
         // Add new bubbles
         bubbleGroup.selectAll("circle")
@@ -143,7 +143,7 @@ function updateBubbles() {
             .append("circle")
             .attr("cx", d => projection(d.coordinates)[0])
             .attr("cy", d => projection(d.coordinates)[1])
-            .attr("r", d => fixedScale(Math.min(d.value, 300)))
+            .attr("r", d => fixedScale(Math.min(d.value, 1000)))
             .style("fill", "red")
             .style("opacity", 0.6)
             .style("stroke", "white")
@@ -163,7 +163,7 @@ function updateBubbles() {
             });
 
         // Valeurs pour la légende
-        const valuesToShow = [1, 50, 300];
+        const valuesToShow = [1, 50, 300, 1000];
 
         // Paramètres de position pour la légende
         const legendGroup = svg.append("g")
@@ -176,8 +176,8 @@ function updateBubbles() {
 
         // Ajouter le titre de la légende
         legendGroup.append("text")
-            .attr("x", xCircle - 20)
-            .attr("y", -10)
+            .attr("x", xCircle - 45)
+            .attr("y", -40)
             .text("Number of releases")
             .style("font-size", "12px")
             .style("font-weight", "bold");
@@ -220,15 +220,15 @@ function updateBubbles() {
         // Ajouter l'information sur les données inconnues
         legendGroup.append("text")
             .attr("x", xLabel + 60)
-            .attr("y", yCircle - fixedScale(valuesToShow[1]))
-            .text(`Releases from unknown country: ${yearData.unknownCount}`)
+            .attr("y", yCircle - fixedScale(valuesToShow[1]) - 20)
+            .text(`Releases from unknown countries: ${yearData.unknownCount}`)
             .style("font-size", "12px")
             .style("fill", "black");
 
         // Ajouter le total des releases
         legendGroup.append("text")
             .attr("x", xLabel + 60)
-            .attr("y", yCircle - fixedScale(valuesToShow[1]) + 20)
+            .attr("y", yCircle - fixedScale(valuesToShow[1]) + 0)
             .text(`Total releases: ${yearData.totalReleases}`)
             .style("font-size", "12px")
             .style("fill", "black");
@@ -236,7 +236,7 @@ function updateBubbles() {
             const unknownPercentage = ((yearData.unknownCount / yearData.totalReleases) * 100).toFixed(1);
         legendGroup.append("text")
             .attr("x", xLabel + 60)
-            .attr("y", yCircle - fixedScale(valuesToShow[1]) + 40)
+            .attr("y", yCircle - fixedScale(valuesToShow[1]) + 20)
             .text(`Unknown percentage: ${unknownPercentage}%`)
             .style("font-size", "12px")
             .style("fill", "black");
