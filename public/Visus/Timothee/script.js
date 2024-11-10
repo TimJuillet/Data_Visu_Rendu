@@ -191,7 +191,7 @@ function updateBubbles() {
             const countryName = d.country.replace(/\s+/g, '-');
             const genre = encodeURIComponent(currentGenre);
             const year = currentYear;
-            const url = `..\\Guillaume\\d15.html?country=${countryName}&genre=${genre}&year=${year}`;
+            const url = `..\\Guillaume\\d16.html?country=${countryName}&genre=${genre}&year=${year}`;
             window.location.href = url;
         });
 
