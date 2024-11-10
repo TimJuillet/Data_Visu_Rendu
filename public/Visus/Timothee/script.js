@@ -33,18 +33,6 @@ const path = d3.geoPath()
     .projection(projection);
 
 // Manual corrections for specific countries
-const countryCorrections = {
-    "United States of America": [-95, 40],
-    "Canada": [-95, 55],
-    "Russia": [100, 60],
-    "France": [2, 47],
-    "Norway": [10, 62],
-    "Denmark": [10, 56],
-    "United Kingdom": [-2, 54],
-    "China": [105, 35],
-    "Brazil": [-55, -10],
-    "Ireland": [-8, 53]
-};
 
 function hasDisplayableData(genre, year) {
     if (!genreData[genre] || !genreData[genre][year]) return false;
@@ -133,7 +121,7 @@ function updateBubbles() {
         // Échelle fixe commune pour les bulles et la légende
         const fixedScale = d3.scaleSqrt()
             .domain([1, 5000])
-            .range([1, 150]);
+            .range([3, 70]);
 
         // Update existing and add new bubbles with transitions
         const circles = bubbleGroup.selectAll("circle")
