@@ -112,8 +112,6 @@ function updateYearSlider(genre) {
 
 function updateBubbles() {
     try {
-        // Nettoyer les bulles existantes et la légende
-        bubbleGroup.selectAll("circle").remove();
         svg.selectAll(".legend").remove();
 
         const yearData = genreData[currentGenre]?.[currentYear];
@@ -127,7 +125,8 @@ function updateBubbles() {
             .map(([country, value]) => ({
                 country,
                 value,
-                coordinates: countryCorrections[country] || null
+                coordinates: countryCorrections[country] || null,
+                id: country // Pour la correspondance des données pendant la transition
             }))
             .filter(d => d.coordinates !== null);
 
@@ -136,42 +135,74 @@ function updateBubbles() {
             .domain([1, 5000])
             .range([1, 150]);
 
+        // Update existing and add new bubbles with transitions
+        const circles = bubbleGroup.selectAll("circle")
+            .data(bubbleData, d => d.id);
+
+        // Remove old bubbles with transition
+        circles.exit()
+            .transition()
+            .duration(1000)
+            .attr("r", 0)
+            .style("opacity", 0)
+            .remove();
+
         // Add new bubbles
-        bubbleGroup.selectAll("circle")
-            .data(bubbleData)
-            .enter()
-            .append("circle")
+        const circlesEnter = circles.enter()
+        .append("circle")
+        .attr("cx", d => projection(d.coordinates)[0])
+        .attr("cy", d => projection(d.coordinates)[1])
+        .attr("r", 0) // Start with radius 0
+        .style("fill", "red")
+        .style("opacity", 0)
+        .style("stroke", "white")
+        .style("stroke-width", 1)
+        .style("cursor", "pointer") // Ajoute la petite main au survol
+        .on("mouseover", function(d) {
+            // Mettre à jour le style du cercle survolé
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .style("stroke", "black")
+                .style("stroke-width", 3);
+                
+            // Afficher le tooltip
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html(`${d.country}<br/>${d.value} releases`)
+                .style("left", (d3.event.pageX + 10) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            // Remettre le style initial du cercle
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .style("stroke", "white")
+                .style("stroke-width", 1);
+                
+            // Cacher le tooltip
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        })
+        .on("click", function(d) {
+            const countryName = d.country.replace(/\s+/g, '-');
+            const genre = encodeURIComponent(currentGenre);
+            const year = currentYear;
+            const url = `..\\Guillaume\\d15.html?country=${countryName}&genre=${genre}&year=${year}`;
+            window.location.href = url;
+        });
+
+        // Merge enter + update selections and apply transitions
+        circles.merge(circlesEnter)
+            .transition()
+            .duration(1000)
             .attr("cx", d => projection(d.coordinates)[0])
             .attr("cy", d => projection(d.coordinates)[1])
             .attr("r", d => fixedScale(Math.min(d.value, 1000)))
-            .style("fill", "red")
-            .style("opacity", 0.6)
-            .style("stroke", "white")
-            .style("stroke-width", 1)
-            .on("mouseover", function(d) {
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html(`${d.country}<br/>${d.value} releases`)
-                    .style("left", (d3.event.pageX + 10) + "px")
-                    .style("top", (d3.event.pageY - 28) + "px");
-            })
-            .on("mouseout", function() {
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-            })
-            .on("click", function(d) {
-                const countryName = d.country.replace(/\s+/g, '-'); // Format the country name for URL if needed
-                const genre = encodeURIComponent(currentGenre); // Encode genre for URL compatibility
-                const year = currentYear; // Use the selected year
-
-                // Define the URL format for d15.html with query parameters
-                const url = `..\\Guillaume\\d15.html?country=${countryName}&genre=${genre}&year=${year}`;
-
-                // Modify the current page's URL to load d15.html with the query parameters
-                window.location.href = url; // This will navigate to the new page, replacing the current page
-            });
+            .style("opacity", 0.6);
 
         // Valeurs pour la légende
         const valuesToShow = [1, 50, 300, 1000];
@@ -191,7 +222,9 @@ function updateBubbles() {
             .attr("y", -40)
             .text("Number of releases")
             .style("font-size", "12px")
-            .style("font-weight", "bold");
+            .style("font-weight", "bold")
+            .style("opacity", 0)
+            .style("opacity", 1);
 
         // Ajouter les cercles de la légende
         legendGroup.selectAll("legend-circles")
@@ -200,22 +233,26 @@ function updateBubbles() {
             .append("circle")
             .attr("cx", xCircle)
             .attr("cy", d => yCircle - fixedScale(d))
-            .attr("r", d => fixedScale(d))
+            .attr("r", 0)  // Start with radius 0
             .style("fill", "none")
             .style("stroke", "black")
-            .style("opacity", 0.8);
+            .style("opacity", 0.8)
+            .attr("r", d => fixedScale(d));
 
         // Ajouter les lignes de la légende
         legendGroup.selectAll("legend-lines")
             .data(valuesToShow)
             .enter()
             .append("line")
-            .attr("x1", d => xCircle + fixedScale(d))
+            .attr("x1", xCircle)
             .attr("x2", xLabel)
             .attr("y1", d => yCircle - fixedScale(d))
             .attr("y2", d => yCircle - fixedScale(d))
             .style("stroke", "black")
-            .style("stroke-dasharray", "2,2");
+            .style("stroke-dasharray", "2,2")
+            .style("opacity", 0)
+            .attr("x1", d => xCircle + fixedScale(d))
+            .style("opacity", 1);
 
         // Ajouter les labels de la légende
         legendGroup.selectAll("legend-labels")
@@ -224,35 +261,44 @@ function updateBubbles() {
             .append("text")
             .attr("x", xLabel + 5)
             .attr("y", d => yCircle - fixedScale(d))
-            .text(d => d)
+            .text(d => d + "+")
             .style("font-size", "11px")
-            .attr("alignment-baseline", "middle");
+            .style("opacity", 0)
+            .attr("alignment-baseline", "middle")
+            .style("opacity", 1);
 
-        // Ajouter l'information sur les données inconnues
+        // Ajouter l'information sur les données inconnues 
         legendGroup.append("text")
             .attr("x", xLabel + 60)
             .attr("y", yCircle - fixedScale(valuesToShow[1]) - 20)
             .text(`Releases from unknown countries: ${yearData.unknownCount}`)
             .style("font-size", "12px")
-            .style("fill", "black");
+            .style("fill", "black")
+            .style("opacity", 0)
+            .style("opacity", 1);
 
-        // Ajouter le total des releases
+        // Ajouter le total des releases 
         legendGroup.append("text")
             .attr("x", xLabel + 60)
             .attr("y", yCircle - fixedScale(valuesToShow[1]) + 0)
             .text(`Total releases: ${yearData.totalReleases}`)
             .style("font-size", "12px")
-            .style("fill", "black");
+            .style("fill", "black")
+            .style("opacity", 0)
+            .style("opacity", 1);
 
-            const unknownPercentage = ((yearData.unknownCount / yearData.totalReleases) * 100).toFixed(1);
+        // Ajouter le pourcentage de données inconnues 
+        const unknownPercentage = ((yearData.unknownCount / yearData.totalReleases) * 100).toFixed(1);
         legendGroup.append("text")
             .attr("x", xLabel + 60)
             .attr("y", yCircle - fixedScale(valuesToShow[1]) + 20)
             .text(`Unknown percentage: ${unknownPercentage}%`)
             .style("font-size", "12px")
-            .style("fill", "black");
+            .style("fill", "black")
+            .style("opacity", 0)
+            .style("opacity", 1);
 
-        // Update title
+        // Update title with transition
         svg.selectAll(".map-title").remove();
         svg.append("text")
             .attr("class", "map-title")
@@ -261,9 +307,11 @@ function updateBubbles() {
             .attr("x", width - 40)
             .attr("y", height - 30)
             .attr("width", 90)
+            .style("opacity", 0)
             .html(`${currentGenre} Releases (${currentYear})`)
             .style("font-size", width/60)
-            .style("font-family", "Arial");
+            .style("font-family", "Arial")
+            .style("opacity", 1);
 
     } catch (error) {
         console.error("Error updating bubbles:", error);
