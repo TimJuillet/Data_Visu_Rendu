@@ -930,4 +930,4 @@ const country_mapping = {
     "Östersund Municipality": "Sweden",
     "České Budějovice": "Czechia",
     "İzmir": "Turkey"
-}
+};
