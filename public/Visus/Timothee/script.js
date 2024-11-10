@@ -63,21 +63,23 @@ function updateYearSlider(genre) {
         // Configurer le slider
         const slider = d3.select("#yearSlider");
         const yearDisplay = d3.select("#year-display");
-
+        
         // Stockage des années disponibles dans un attribut du slider
         slider.node().availableYears = availableYears;
 
-        // Définir la valeur initiale
-        if (!currentYear || !availableYears.includes(Number(currentYear))) {
-            currentYear = availableYears[0];
-        }
+        // Toujours sélectionner la première année (minimum)
+        currentYear = availableYears[0];
 
-        // Configurer le slider
+        // Configurer le slider - utiliser à la fois attr et property
         slider
             .attr("min", 0)
             .attr("max", availableYears.length - 1)
             .attr("step", 1)
-            .attr("value", availableYears.indexOf(Number(currentYear)));
+            .attr("value", 0)      // Mettre à jour l'attribut
+            .property("value", 0);  // Force la mise à jour de la propriété
+
+        // Une autre approche serait de mettre à jour directement l'élément DOM
+        document.getElementById("yearSlider").value = 0;
 
         // Mettre à jour l'affichage de l'année
         yearDisplay.text(currentYear);
@@ -431,7 +433,7 @@ d3.queue()
             // Add event listener for genre change
             d3.select("#genreSelect").on("change", function() {
                 currentGenre = this.value;
-                updateYearSlider(currentGenre);
+                updateYearSlider(currentGenre);  // Cela réinitialisera automatiquement l'année au minimum
             });
 
         } catch (error) {
