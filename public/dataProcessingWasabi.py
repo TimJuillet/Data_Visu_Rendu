@@ -326,10 +326,6 @@ with open(output_json_path, 'w', encoding='utf-8') as json_output:
 print(f"Dictionary 1 saved to {output_json_path}")
 
 
-
-
-
-
 # Charger les données du fichier formatted_song_data.json
 file_path_songs = 'data\\processing\\formatted_song_data.json'
 with open(file_path_songs, 'r', encoding='utf-8') as json_file:
@@ -349,7 +345,6 @@ for artist_info in artist_location_data:
 
 # Initialiser le dictionnaire pour la structure finale
 country_dict = {}
-
 
 # Fonction pour traiter chaque genre, année, sous-genre, et artiste
 def process_genre_data(genre, year, artists, country_dict):
@@ -377,17 +372,17 @@ def process_genre_data(genre, year, artists, country_dict):
         # Ajouter ou mettre à jour les sous-genres et artistes dans subgenres_dict
         subgenre_dict = country_dict[country][main_genre][year][1]
         if subgenre not in subgenre_dict:
-            subgenre_dict[subgenre] = {}
+            subgenre_dict[subgenre] = [0, {}]  # [subgenre_total_count, artists_dict]
 
         # Mettre à jour le nombre de chansons de chaque artiste pour le sous-genre
-        if artist in subgenre_dict[subgenre]:
-            subgenre_dict[subgenre][artist] += artist_count
+        if artist in subgenre_dict[subgenre][1]:
+            subgenre_dict[subgenre][1][artist] += artist_count
         else:
-            subgenre_dict[subgenre][artist] = artist_count
+            subgenre_dict[subgenre][1][artist] = artist_count
 
         # Mettre à jour le nombre total de chansons (somme des chansons pour chaque artiste)
         country_dict[country][main_genre][year][0] += artist_count
-
+        subgenre_dict[subgenre][0] += artist_count  # Mettre à jour le total pour le sous-genre
 
 # Parcourir les données du fichier JSON et les traiter
 for key, value in songs_data.items():

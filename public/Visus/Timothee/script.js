@@ -160,6 +160,17 @@ function updateBubbles() {
                 tooltip.transition()
                     .duration(500)
                     .style("opacity", 0);
+            })
+            .on("click", function(d) {
+                const countryName = d.country.replace(/\s+/g, '-'); // Format the country name for URL if needed
+                const genre = encodeURIComponent(currentGenre); // Encode genre for URL compatibility
+                const year = currentYear; // Use the selected year
+
+                // Define the URL format for d15.html with query parameters
+                const url = `..\\Guillaume\\d15.html?country=${countryName}&genre=${genre}&year=${year}`;
+
+                // Open the new page
+                window.open(url, '_blank');
             });
 
         // Valeurs pour la légende
