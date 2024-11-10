@@ -169,8 +169,8 @@ function updateBubbles() {
                 // Define the URL format for d15.html with query parameters
                 const url = `..\\Guillaume\\d15.html?country=${countryName}&genre=${genre}&year=${year}`;
 
-                // Open the new page
-                window.open(url, '_blank');
+                // Modify the current page's URL to load d15.html with the query parameters
+                window.location.href = url; // This will navigate to the new page, replacing the current page
             });
 
         // Valeurs pour la légende

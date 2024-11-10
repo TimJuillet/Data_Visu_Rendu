@@ -326,6 +326,10 @@ with open(output_json_path, 'w', encoding='utf-8') as json_output:
 print(f"Dictionary 1 saved to {output_json_path}")
 
 
+
+
+
+
 # Charger les données du fichier formatted_song_data.json
 file_path_songs = 'data\\processing\\formatted_song_data.json'
 with open(file_path_songs, 'r', encoding='utf-8') as json_file:
