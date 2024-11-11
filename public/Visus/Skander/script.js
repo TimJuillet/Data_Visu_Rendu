@@ -13,6 +13,33 @@ function hideLoader() {
     }
 }
 
+// Initialisation des variables pour la liste des mots exclus
+let excludedWords = new Set();
+
+// Fonction pour mettre à jour l'affichage des mots exclus
+function updateExcludedWordsDisplay() {
+    const excludedContainer = document.getElementById('excluded-words');
+    excludedContainer.innerHTML = ''; // Vide l'affichage précédent
+
+    excludedWords.forEach(word => {
+        const wordElement = document.createElement('span');
+        wordElement.textContent = word;
+        wordElement.classList.add('excluded-word');
+        wordElement.style.margin = '5px';
+        wordElement.style.padding = '3px 8px';
+        wordElement.style.border = '1px solid #ccc';
+        wordElement.style.borderRadius = '10px';
+        wordElement.style.backgroundColor = '#f9f9f9';
+        wordElement.style.cursor = 'pointer';
+        wordElement.onclick = () => {
+            excludedWords.delete(word);
+            updateExcludedWordsDisplay();
+            updateWordCloud(); // Met à jour le word cloud directement
+        };
+        excludedContainer.appendChild(wordElement);
+    });
+}
+
 // Charger le fichier JSON avec les données des mots
 showLoader(); // Affiche le loader
 console.time("Chargement des données JSON");
@@ -103,7 +130,9 @@ d3.json("../../data/data_mots.json").then(data => {
         }
 
         console.log("Nombre de mots trouvés :", Object.keys(mots).length);
-        console.log("Données des mots :", mots);
+
+        // Filtrer les mots exclus
+        mots = Object.fromEntries(Object.entries(mots).filter(([word]) => !excludedWords.has(word)));
 
         // Afficher un message s'il n'y a pas de mots
         if (Object.keys(mots).length === 0) {
@@ -118,15 +147,27 @@ d3.json("../../data/data_mots.json").then(data => {
         console.log("Tableau de mots pour le Word Cloud :", words);
 
         // Limiter le nombre de mots pour améliorer la performance
-        const limitedWords = words.slice(0, 500); // Limite à 500 mots
+        const limitedWords = words.sort((a, b) => b.size - a.size).slice(0, 500); // Trie les mots par fréquence décroissante
+
+        // Recalculer la taille maximale après l'exclusion de mots
+        const maxFrequency = d3.max(limitedWords, d => d.size);
+        // Calculer la somme des occurrences et la moyenne pour estimer un facteur de normalisation
+        const totalOccurrences = d3.sum(limitedWords, d => d.size);
+        const averageSize = totalOccurrences / limitedWords.length;
+
+        // Échelle pour normaliser la taille des mots afin que le word cloud reste cohérent en taille
+        const normalizationFactor =4.5; // Ajuste cette valeur pour modifier l'échelle globale du word cloud
+        const sizeScale = d3.scaleLinear()
+            .domain([1, maxFrequency])
+            .range([2, (normalizationFactor / averageSize) * maxFrequency]); // Ajuster la taille max dynamiquement
 
         // Dessiner le Word Cloud
         d3.select("#wordcloud").selectAll("*").remove();
         console.log("Début de la création du Word Cloud");
         d3.layout.cloud()
-            .size([800, 400])
-            .words(limitedWords)
-            .padding(5)
+            .size([800, 400]) // Changez ici pour ajuster la taille du word cloud
+            .words(limitedWords.map(d => ({ ...d, size: sizeScale(d.size) }))) // Applique l'échelle de taille proportionnelle
+            .padding(1)
             .rotate(() => ~~(Math.random() * 2) * 90)
             .font("Impact")
             .fontSize(d => d.size)
@@ -136,8 +177,8 @@ d3.json("../../data/data_mots.json").then(data => {
         function draw(words) {
             console.log("Dessiner les mots :", words);
             d3.select("#wordcloud").append("svg")
-                .attr("width", 800)
-                .attr("height", 400)
+                .attr("width", 800) // Changez ici pour ajuster la taille du word cloud
+                .attr("height", 400) // Changez ici pour ajuster la taille du word cloud
                 .append("g")
                 .attr("transform", "translate(400,200)")
                 .selectAll("text")
@@ -148,7 +189,12 @@ d3.json("../../data/data_mots.json").then(data => {
                 .style("fill", (d, i) => d3.schemeCategory10[i % 10])
                 .attr("text-anchor", "middle")
                 .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
-                .text(d => d.text);
+                .text(d => d.text)
+                .on("click", function(event, d) {
+                    excludedWords.add(d.text);
+                    updateExcludedWordsDisplay();
+                    updateWordCloud();
+                });
             console.log("Fin de la création du Word Cloud");
         }
 
