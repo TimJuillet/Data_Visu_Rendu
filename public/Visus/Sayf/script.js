@@ -408,11 +408,11 @@ function drawDonut(data, targetDivId, isOther = false) {
             var midangle = d.startAngle + (d.endAngle - d.startAngle) / 2;
             posC[0] = modalRadius2 * 0.95 * (midangle < Math.PI ? 1 : -1);
             if (midangle - Math.PI/2 > 0 && midangle-Math.PI/2 < Math.PI) {
-                posB[1] = 1*posB[1] + 40 * Math.exp(-10 * Math.abs(midangle  - Math.PI/2 - Math.PI/2));
-                posC[1] = 1*posC[1] + 40 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
+                posB[1] = 1*posB[1] + 8 * Math.pow(Math.exp(-2 * Math.abs(midangle  - Math.PI/2 - Math.PI/2))+1,4) - 50;
+                posC[1] = 1*posC[1] + 8 * Math.pow(Math.exp(-2 * Math.abs(midangle  - Math.PI/2 - Math.PI/2))+1,4) - 50;
             } else {
-                posB[1] = 1*posB[1] + 40 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
-                posC[1] = 1*posC[1] + 40 * Math.exp(-10 * Math.abs(midangle- Math.PI/2 - Math.PI/2));
+                posB[1] = 1*posB[1] + 8 * Math.pow(Math.exp(-2 * Math.abs(midangle  - Math.PI/2 - Math.PI/2))+1,4) - 50;
+                posC[1] = 1*posC[1] + 8 * Math.pow(Math.exp(-2 * Math.abs(midangle  - Math.PI/2 - Math.PI/2))+1,4) - 50;
             }
             console.log(midangle, Math.abs(midangle - Math.PI/2) ,posA, posB, posC)
             return [posA, posB, posC];
@@ -433,9 +433,9 @@ function drawDonut(data, targetDivId, isOther = false) {
             }
             pos[0] = modalRadius2 * 0.99 * (midangle < Math.PI ? 1 : -1);
             if (midangle - Math.PI/2 > 0 && midangle-Math.PI/2 < Math.PI) {
-                pos[1] = 1*pos[1] + 40 * Math.exp(-10 * Math.abs(midangle  - Math.PI/2 - Math.PI/2));
+                pos[1] = 1*pos[1] + 8 * Math.pow(Math.exp(-2 * Math.abs(midangle  - Math.PI/2 - Math.PI/2))+1,4) - 50;
             } else {
-                pos[1] = 1*pos[1] + 40 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
+                pos[1] = 1*pos[1] + 8 * Math.pow(Math.exp(-2 * Math.abs(midangle - Math.PI/2- Math.PI/2))+1,4) - 50;
             }
             return 'translate(' + pos + ')';
         })
