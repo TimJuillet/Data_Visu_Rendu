@@ -19,7 +19,7 @@ The description of the project should include :
 
 ## Workflow des données :
 
-![Alt text](<Worklow visualisation.drawio.png>)
+![Image du Workflow](Worklow%20visualisation.drawio.png)
 
 ## Travail réalisé :
 
@@ -32,3 +32,12 @@ The description of the project should include :
 - Le fichier bubble.js correspond à la visualisation de la bubble map. seul que j'ai codé. Les version 2 et 3 correspondent à la bubble avant les liens vers les autres visualisations.
 - Ajout d'animations sur les bulles lors du changement des données.
 - Ajout d'animation sur les bulles quand on passe la souris dessus, pour comprendre que l'on peut cliquer dessus.
+
+### Sayf Eddine Halmi :
+
+- Un graphe multi-lignes indiquant l'évolution du nombre de genres par année.
+- En partant du fichier Guillaume2.json, j'ai créé un fichier 'summary.csv' mieux adapté à mon besoin qui continent uniquement les information dont j'ai besoin : un tableau country|year|genre|nbSongs. C'est à partir de ce fichier que je crée mon graphe, en veillant à corriger les valeurs des pays à partir des données du fichier countryMapping.js. J'ai également ajouté des lignes qui correspondent à la somme de toutes les données sur les années et les genres afin de modéliser l'évolution global des genres à travers le temps.
+- Ma visualisation est un graphe multi-lignes, j'ai utilisé la librairie d3.js pour la réaliser. J'ai également ajouté des tooltips pour rendre la visualisation plus dynamique. Par exemple, en passant la souris sur un point de donnée, on peut voir le nombre de chansons pour le pays, l'année et le genre correspondants. J'ai également ajouté une liaison au travail réalisé par Guillaume : un clic sur une année de l'axe x permet d'afficher un donut de la répatition des genres en % pour l'année en question.
+- Dans cette visualisation on retrouve 3 filtres. Le premier est pour les pays, afin de ne pas surcharger le graphe le nombre de pays maximal pouvant être visualisé a été fixé à 5 (cette limite peut être ajustée ou supprimmée dans le code si on se rend compte par la suite qu'elle n'est pas utile). On peut également choisir de voir la/les courbes de somme de tous les pays en choisissant "World". Le deuxième est un filtre sur les genre, on peut choisir de voir un, plusieurs ou tous les genres. Et enfin un filtre sur le temps : l'intervalle dans lequel on cherche à visualiser les données (on essaie de garder des intervalles de tailles au moins 6 ans aussi souvent que possible).
+- Afin de permettre des manipulations rapides, le filtre de genre dispose d'options Select All et Deselect All pour en faciliter l'usage.
+- Pour l'intervalle de temps, j'ai ajouté une option d'auto-fit qui permet de choisir automatiquement l'intervalle de temps en fonction des données disponibles : de la première apparition à la plus récente pour les genres selectionnés dans les pays chosis.
