@@ -570,11 +570,9 @@ function drawDonut(data, targetDivId, isOther = false) {
 
         if (Object.keys(otherData2).length > 0) {
             processedData["Autre"] = d3.sum(Object.values(otherData2));
-            cachedOtherData2 = Object.assign({}, otherData2);
+            originalPercentages2["Autre"] = (processedData["Autre"] / totalValue) * 100;
         }
     }
-
-
 
     currentData2 = processedData;
 
@@ -615,11 +613,17 @@ function drawDonut(data, targetDivId, isOther = false) {
     // Ajout du total au centre
     svg.append("text")
         .attr("class", "total-label")
+        .attr("text-anchor", "middle")
+        .attr("font-size", "1.2em") // Augmenter la taille de la police
+        .attr("font-weight", "bold") // Mettre le texte en gras
         .attr("dy", "-0.5em")
         .text("Total");
 
     svg.append("text")
         .attr("class", "total-label")
+        .attr("text-anchor", "middle")
+        .attr("font-size", "1.2em") // Augmenter la taille de la police
+        .attr("font-weight", "bold") // Mettre le texte en gras
         .attr("dy", "0.7em")
         .text(totalValue.toLocaleString() + " musiques");
 
@@ -637,13 +641,16 @@ function drawDonut(data, targetDivId, isOther = false) {
             var posC = outerArc.centroid(d);
             var midangle = d.startAngle + (d.endAngle - d.startAngle) / 2;
             posC[0] = modalRadius2 * 0.95 * (midangle < Math.PI ? 1 : -1);
-            posB[1] = posB[1] + Math.sin(midangle) * Math.exp(2 + Math.abs(Math.sin(midangle - Math.PI/2+ Math.PI/10))) * 10 / Math.exp(1);
-            posC[1] = posC[1] + Math.sin(midangle) * Math.exp(2 + Math.abs(Math.sin(midangle - Math.PI/2+ Math.PI/10))) * 10 / Math.exp(1);
-            console.log(Math.sin(Math.PI/2), midangle, d.endAngle, d.startAngle)
-            console.log(posA, posB, posC)
+            if (midangle - Math.PI/2 > 0 && midangle-Math.PI/2 < Math.PI) {
+                posB[1] = 1*posB[1] + 30 * Math.exp(-10 * Math.abs(midangle  - Math.PI/2 - Math.PI/2));
+                posC[1] = 1*posC[1] + 30 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
+            } else {
+                posB[1] = 1*posB[1] + 30 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
+                posC[1] = 1*posC[1] + 30 * Math.exp(-10 * Math.abs(midangle- Math.PI/2 - Math.PI/2));
+            }
+            console.log(midangle, Math.abs(midangle - Math.pi/2) ,posA, posB, posC)
             return [posA, posB, posC];
         });
-
 
     // Création des labels
     var labels = svg.selectAll('allLabels')
@@ -654,8 +661,16 @@ function drawDonut(data, targetDivId, isOther = false) {
         .attr('transform', function(d) {
             var pos = outerArc.centroid(d);
             var midangle = d.startAngle + (d.endAngle - d.startAngle) / 2;
+            var offset = 0;
+            if (Math.abs(midangle - Math.PI / 2) < 0.1 || Math.abs(midangle + Math.PI / 2) < 0.1) {
+                offset = 30;
+            }
             pos[0] = modalRadius2 * 0.99 * (midangle < Math.PI ? 1 : -1);
-            pos[1] = pos[1] + Math.sin(midangle) * Math.exp(2 + Math.abs(Math.sin(midangle - Math.PI/2+ Math.PI/10))) * 10 / Math.exp(1);
+            if (midangle - Math.PI/2 > 0 && midangle-Math.PI/2 < Math.PI) {
+                pos[1] = 1*pos[1] + 30 * Math.exp(-10 * Math.abs(midangle  - Math.PI/2 - Math.PI/2));
+            } else {
+                pos[1] = 1*pos[1] + 30 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
+            }
             return 'translate(' + pos + ')';
         })
         .style('text-anchor', function(d) {
