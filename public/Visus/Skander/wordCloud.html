@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Cloud</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-cloud/build/d3.layout.cloud.js"></script>
+</head>
+<body>
+    <label for="genre">Choisissez un genre :</label>
+    <select id="genre"></select>
+
+    <label for="annee">Choisissez une année :</label>
+    <select id="annee"></select>
+
+    <div id="wordcloud"></div>
+    <div id="excluded-words" style="margin-top: 20px; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
+        <strong>Mots exclus (cliquez pour les réintégrer) :</strong>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
