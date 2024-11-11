@@ -1,0 +1,12 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+label {
+    margin-right: 10px;
+}
+
+#wordcloud {
+    margin-top: 20px;
+}
