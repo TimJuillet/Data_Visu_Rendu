@@ -1,19 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Genre Evolution by Country</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-    <div class="controls">
-        <select id="genreSelect"></select>
-        <select id="yearSelect"></select>
-    </div>
-    <svg id="my_dataviz"></svg>
+  <h2>Evolution des Genres Musicaux par Pays</h2>
+  <label for="country-select">Choisir un pays :</label>
+  <select id="country-select" multiple></select>
 
-    <!-- D3.js -->
-    <script src="https://d3js.org/d3.v4.min.js"></script>
-    <!-- Your script -->
-    <script src="script.js"></script>
+  <label for="genre-select">Choisir un genre :</label>
+  <select id="genre-select" multiple></select>
+
+  <br>
+
+  <label>Plage d'années :</label>
+  <input type="number" id="year-start" placeholder="Année de début">
+  <input type="number" id="year-end" placeholder="Année de fin">
+  <input type="checkbox" id="auto-fit">
+    <label for="auto-fit">Ajustement automatique</label>
+  <div id="chart"></div>
+
+      <div id="detailsModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-button">×</button>
+            <div id="my_dataviz2"></div>
+        </div>
+        <div id="detailsModal2" class="modal-overlay2">
+            <div class="modal-content">
+                <button class="back-button2">←</button>
+                <button class="close-button2">×</button>
+                <div id="modal_dataviz3"></div>
+            </div>
+        </div>
+    </div>
+
+  <script>
+    // Définir les marges et la taille du graphique
+    const margin = { top: 20, right: 300, bottom: 50, left: 50 },
+          width = 1300 - margin.left - margin.right,
+          height = 400 - margin.top - margin.bottom;
+
+    // Créer le SVG pour le graphique
+    const svg = d3.select("#chart")
+                  .append("svg")
+                  .attr("width", width + margin.left + margin.right)
+                  .attr("height", height + margin.top + margin.bottom)
+                  .append("g")
+                  .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const tooltip = d3.select("body")
+    .append("div")
+    .attr("class", "tooltip");
+  </script>
+  <script src="script.js"></script>
 </body>
 </html>
