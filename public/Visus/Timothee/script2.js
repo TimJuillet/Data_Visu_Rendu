@@ -482,7 +482,7 @@ function hideNewView() {
 
 window.onload = function() {
     const year = currentYear;
-    updateChart(year);
+    //updateChart(year);
 };
 
 // Configuration initiale

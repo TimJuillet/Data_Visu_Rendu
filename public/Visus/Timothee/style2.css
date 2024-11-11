@@ -83,7 +83,7 @@ select {
     text-align: center;
 }
 
-#actionButton {
+#actionButton, #loadBarChartButton {
     padding: 8px 16px;
     font-size: 14px; /* Taille de texte réduite */
     color: #000; /* Texte en noir */
@@ -95,7 +95,7 @@ select {
     font-weight: normal; /* Enlève le gras */
 }
 
-#actionButton:hover {
+#actionButton:hover, #loadBarChartButton:hover {
     background-color: #aaa; /* Gris plus foncé au survol */
 }
 
