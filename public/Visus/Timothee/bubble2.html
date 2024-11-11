@@ -15,6 +15,41 @@
         button {
             width: 100%; /* Vous pouvez ajuster cette valeur selon vos besoins */
         }
+
+        /* Styles pour l'overlay du Word Cloud */
+        #wordCloudOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+        #wordCloudOverlay iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 90%;
+            border: none;
+        }
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        /* Styles pour les options des sous-genres */
+        .highlight-option {
+            background-color: yellow;
+        }
     </style>
 </head>
 <body>
@@ -23,8 +58,8 @@
     </div>
     <div class="controls2">
         <button id="actionButton">Evolution of<br>genres</button>
-        <!-- Nouveau bouton "Load Bar Chart" en dessous de "Proportion of genres" -->
         <button id="loadBarChartButton">Load Bar Chart</button>
+        <button id="openWordCloud">Word Cloud</button> <!-- Bouton ajouté ici -->
     </div>
     <div class="slider-container">
         <label class="slider-label">Year</label>
@@ -32,6 +67,12 @@
         <div id="year-display"></div>
     </div>
     <svg id="my_dataviz"></svg>
+
+    <!-- Overlay pour le word cloud -->
+    <div id="wordCloudOverlay">
+        <button class="close-button" onclick="closeWordCloud()">×</button>
+        <iframe id="wordCloudIframe" src="../Skander/wordCloud.html"></iframe>
+    </div>
 
     <!-- Modal content -->
     <div id="detailsModal" class="modal-overlay">
@@ -55,6 +96,48 @@
     <script src="script2.js"></script>
 
     <script>
+        // Fonction pour ouvrir le word cloud
+        // Fonction pour ouvrir le word cloud avec les paramètres
+        // Fonction pour ouvrir le word cloud avec les paramètres
+        document.getElementById('openWordCloud').onclick = function() {
+            const selectedGenre = document.getElementById('genreSelect').value;
+            const selectedYear = currentYear; // Utiliser la variable `currentYear` définie dans le script Bubble
+
+            console.log("Genre sélectionné :", selectedGenre);
+            console.log("Année sélectionnée :", selectedYear);
+
+            const iframe = document.getElementById('wordCloudIframe');
+
+            // Met à jour l'URL de l'iframe pour inclure le genre et l'année sélectionnés
+            iframe.src = `../Skander/wordCloud.html?genre=${encodeURIComponent(selectedGenre)}&year=${selectedYear}`;
+            console.log("URL de l'iframe mise à jour :", iframe.src);
+
+            document.getElementById('wordCloudOverlay').style.display = 'block';
+        };
+
+        // Fonction pour fermer le word cloud
+        function closeWordCloud() {
+            document.getElementById('wordCloudOverlay').style.display = 'none';
+        }
+
+        // Fonction pour mettre en évidence les options des sous-genres
+        function highlightSubgenres(genre) {
+            const options = document.querySelectorAll('#genreSelect option');
+            options.forEach(option => {
+                if (option.value.includes(genre)) {
+                    option.classList.add('highlight-option');
+                } else {
+                    option.classList.remove('highlight-option');
+                }
+            });
+        }
+
+        // Exemple de mise à jour de l'année et du genre par défaut
+        document.getElementById('genreSelect').addEventListener('change', function() {
+            const selectedGenre = this.value;
+            highlightSubgenres(selectedGenre);
+        });
+
         // Ajout d'un événement de clic sur le bouton "Load Bar Chart"
         document.getElementById("loadBarChartButton").addEventListener("click", function() {
             // Rediriger vers la page bar_chart.html

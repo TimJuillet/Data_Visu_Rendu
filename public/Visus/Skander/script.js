@@ -13,6 +13,25 @@ function hideLoader() {
     }
 }
 
+// Fonction pour récupérer les paramètres de l'URL
+function getUrlParams() {
+    const params = {};
+    const queryString = window.location.search.slice(1);
+    const pairs = queryString.split('&');
+
+    pairs.forEach(pair => {
+        const [key, value] = pair.split('=');
+        params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+    });
+
+    return params;
+}
+
+// Récupérer les paramètres de l'URL
+const urlParams = getUrlParams();
+const defaultGenre = urlParams['genre'] || 'Tout'; // 'Tout' par défaut si aucun genre n'est spécifié
+const defaultYear = urlParams['year'] || 'Tout'; // 'Tout' par défaut si aucune année n'est spécifiée
+
 // Initialisation des variables pour la liste des mots exclus
 let excludedWords = new Set();
 
@@ -50,8 +69,21 @@ d3.json("../../data/data_mots.json").then(data => {
     console.time("Initialisation de l'application");
     const genreSelect = document.getElementById('genre');
     const anneeSelect = document.getElementById('annee');
-    let currentGenre = 'Tout';
-    let currentAnnee = 'Tout';
+
+    // Utiliser un genre similaire si `defaultGenre` n'existe pas dans les données
+    let currentGenre = defaultGenre;
+    const similarGenres = Object.keys(data).filter(genre => genre.includes(defaultGenre));
+    if (similarGenres.length > 0) {
+        currentGenre = similarGenres[0];
+    } else {
+        currentGenre = 'Tout'; // Utiliser 'Tout' par défaut si aucun genre similaire n'est trouvé
+    }
+
+    // Vérifier si l'année par défaut existe dans les données pour le genre sélectionné
+    let currentAnnee = defaultYear;
+    if (currentGenre !== 'Tout' && !Object.keys(data[currentGenre] || {}).includes(defaultYear)) {
+        currentAnnee = 'Tout'; // Choisir 'Tout' si l'année n'existe pas
+    }
 
     // Remplir les options de genre et d'année
     console.time("Remplissage des options de genre et d'année");
@@ -62,20 +94,23 @@ d3.json("../../data/data_mots.json").then(data => {
         const option = document.createElement('option');
         option.value = genre;
         option.textContent = genre;
+        if (genre === currentGenre) {
+            option.selected = true; // Sélectionne l'option par défaut
+        }
         genreSelect.appendChild(option);
 
         // Ajouter les années au set
         Object.keys(data[genre]).forEach(annee => anneesSet.add(annee));
     });
 
-    console.timeEnd("Remplissage des options de genre et d'année");
-
     // Ajouter l'option "Tout" au début
     const toutOptionGenre = document.createElement('option');
     toutOptionGenre.value = 'Tout';
     toutOptionGenre.textContent = 'Tout';
+    if (currentGenre === 'Tout') {
+        toutOptionGenre.selected = true;
+    }
     genreSelect.insertBefore(toutOptionGenre, genreSelect.firstChild);
-    genreSelect.value = 'Tout';
 
     // Remplir les options d'années
     const annees = Array.from(anneesSet).sort();
@@ -83,6 +118,9 @@ d3.json("../../data/data_mots.json").then(data => {
         const option = document.createElement('option');
         option.value = annee;
         option.textContent = annee;
+        if (annee === currentAnnee) {
+            option.selected = true; // Sélectionne l'année par défaut
+        }
         anneeSelect.appendChild(option);
     });
 
@@ -90,10 +128,51 @@ d3.json("../../data/data_mots.json").then(data => {
     const toutOptionAnnee = document.createElement('option');
     toutOptionAnnee.value = 'Tout';
     toutOptionAnnee.textContent = 'Tout';
+    if (currentAnnee === 'Tout') {
+        toutOptionAnnee.selected = true;
+    }
     anneeSelect.insertBefore(toutOptionAnnee, anneeSelect.firstChild);
-    anneeSelect.value = 'Tout';
 
+    // Mettre à jour les couleurs des options
+    updateOptionBackgrounds(genreSelect, defaultGenre);
+    updateOptionBackgrounds(anneeSelect, defaultYear);
+
+    // Mettre à jour la couleur des sélecteurs
+    updateSelectBackgrounds();
+
+    console.timeEnd("Remplissage des options de genre et d'année");
     console.timeEnd("Initialisation de l'application");
+
+    // Fonction pour mettre à jour les couleurs des options
+    function updateOptionBackgrounds(selectElement, defaultValue) {
+        const options = selectElement.options;
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            // Forcer la couleur de fond à blanc
+            option.style.backgroundColor = 'white';
+            // Vérifier si l'option correspond
+            if (defaultValue !== 'Tout' && option.value.toLowerCase().includes(defaultValue.toLowerCase())) {
+                option.style.backgroundColor = 'lightblue'; // Surligner les options correspondantes
+            }
+        }
+    }
+
+    // Fonction pour mettre à jour la couleur de fond des sélecteurs
+    function updateSelectBackgrounds() {
+        // Mettre à jour le genreSelect
+        if (defaultGenre !== 'Tout' && genreSelect.value.toLowerCase().includes(defaultGenre.toLowerCase())) {
+            genreSelect.style.backgroundColor = 'lightblue';
+        } else {
+            genreSelect.style.backgroundColor = 'white'; // Forcer à blanc si non correspondant
+        }
+
+        // Mettre à jour le anneeSelect
+        if (defaultYear !== 'Tout' && anneeSelect.value.includes(defaultYear)) {
+            anneeSelect.style.backgroundColor = 'lightblue';
+        } else {
+            anneeSelect.style.backgroundColor = 'white'; // Forcer à blanc si non correspondant
+        }
+    }
 
     // Fonction pour mettre à jour le Word Cloud
     function updateWordCloud() {
@@ -156,7 +235,7 @@ d3.json("../../data/data_mots.json").then(data => {
         const averageSize = totalOccurrences / limitedWords.length;
 
         // Échelle pour normaliser la taille des mots afin que le word cloud reste cohérent en taille
-        const normalizationFactor =4; // Ajuste cette valeur pour modifier l'échelle globale du word cloud
+        const normalizationFactor = 4; // Ajuste cette valeur pour modifier l'échelle globale du word cloud
         const sizeScale = d3.scaleLinear()
             .domain([1, maxFrequency])
             .range([2, (normalizationFactor / averageSize) * maxFrequency]); // Ajuster la taille max dynamiquement
@@ -202,8 +281,14 @@ d3.json("../../data/data_mots.json").then(data => {
     }
 
     // Ajouter des événements aux sélecteurs
-    genreSelect.addEventListener('change', updateWordCloud);
-    anneeSelect.addEventListener('change', updateWordCloud);
+    genreSelect.addEventListener('change', () => {
+        updateSelectBackgrounds();
+        updateWordCloud();
+    });
+    anneeSelect.addEventListener('change', () => {
+        updateSelectBackgrounds();
+        updateWordCloud();
+    });
 
     // Fonction utilitaire pour combiner des comptes de mots
     function combineWordCounts(obj1, obj2) {
