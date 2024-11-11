@@ -555,7 +555,7 @@ function drawDonut(data, targetDivId, isOther = false) {
         });
 
         if (Object.keys(otherData2).length > 0) {
-            processedData["Autre"] = d3.sum(Object.values(otherData2));
+            processedData["Other"] = d3.sum(Object.values(otherData2));
             cachedOtherData2 = Object.assign({}, otherData2);
         }
     } else {
@@ -569,8 +569,8 @@ function drawDonut(data, targetDivId, isOther = false) {
         });
 
         if (Object.keys(otherData2).length > 0) {
-            processedData["Autre"] = d3.sum(Object.values(otherData2));
-            originalPercentages2["Autre"] = (processedData["Autre"] / totalValue) * 100;
+            processedData["Other"] = d3.sum(Object.values(otherData2));
+            originalPercentages2["Other"] = (processedData["Other"] / totalValue) * 100;
         }
     }
 
@@ -605,7 +605,7 @@ function drawDonut(data, targetDivId, isOther = false) {
         .on("mouseleave", hideTooltip);
 
     if (!isOther) {
-        slices.filter(d => d.data.key === "Autre")
+        slices.filter(d => d.data.key === "Other")
             .classed("clickable", true)
             .on("click", showOtherChart);
     }
@@ -625,7 +625,7 @@ function drawDonut(data, targetDivId, isOther = false) {
         .attr("font-size", "1.2em") // Augmenter la taille de la police
         .attr("font-weight", "bold") // Mettre le texte en gras
         .attr("dy", "0.7em")
-        .text(totalValue.toLocaleString() + " musiques");
+        .text(totalValue.toLocaleString() + " musics");
 
     // Création des polylines
     svg.selectAll('allPolylines')
@@ -642,11 +642,11 @@ function drawDonut(data, targetDivId, isOther = false) {
             var midangle = d.startAngle + (d.endAngle - d.startAngle) / 2;
             posC[0] = modalRadius2 * 0.95 * (midangle < Math.PI ? 1 : -1);
             if (midangle - Math.PI/2 > 0 && midangle-Math.PI/2 < Math.PI) {
-                posB[1] = 1*posB[1] + 30 * Math.exp(-10 * Math.abs(midangle  - Math.PI/2 - Math.PI/2));
-                posC[1] = 1*posC[1] + 30 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
+                posB[1] = 1*posB[1] + 40 * Math.exp(-10 * Math.abs(midangle  - Math.PI/2 - Math.PI/2));
+                posC[1] = 1*posC[1] + 40 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
             } else {
-                posB[1] = 1*posB[1] + 30 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
-                posC[1] = 1*posC[1] + 30 * Math.exp(-10 * Math.abs(midangle- Math.PI/2 - Math.PI/2));
+                posB[1] = 1*posB[1] + 40 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
+                posC[1] = 1*posC[1] + 40 * Math.exp(-10 * Math.abs(midangle- Math.PI/2 - Math.PI/2));
             }
             console.log(midangle, Math.abs(midangle - Math.pi/2) ,posA, posB, posC)
             return [posA, posB, posC];
@@ -667,9 +667,9 @@ function drawDonut(data, targetDivId, isOther = false) {
             }
             pos[0] = modalRadius2 * 0.99 * (midangle < Math.PI ? 1 : -1);
             if (midangle - Math.PI/2 > 0 && midangle-Math.PI/2 < Math.PI) {
-                pos[1] = 1*pos[1] + 30 * Math.exp(-10 * Math.abs(midangle  - Math.PI/2 - Math.PI/2));
+                pos[1] = 1*pos[1] + 40 * Math.exp(-10 * Math.abs(midangle  - Math.PI/2 - Math.PI/2));
             } else {
-                pos[1] = 1*pos[1] + 30 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
+                pos[1] = 1*pos[1] + 40 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
             }
             return 'translate(' + pos + ')';
         })
@@ -693,7 +693,7 @@ function drawDonut(data, targetDivId, isOther = false) {
         .attr('dy', '0em');
 
     if (!isOther) {
-        labels.filter(d => d.data.key === "Autre")
+        labels.filter(d => d.data.key === "Other")
             .classed("clickable", true)
             .on("click", showOtherChart);
     }

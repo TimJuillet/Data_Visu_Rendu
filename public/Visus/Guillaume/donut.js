@@ -61,7 +61,7 @@ function showTooltip(d, isOther = false) {
 
     tooltip
         .style("opacity", 1)
-        .html(`${d.data.key}<br>${songs} musique${songs > 1 ? 's' : ''}`)
+        .html(`${d.data.key}<br>${songs} music${songs > 1 ? 's' : ''}`)
         .style("left", (d3.event.pageX + 10) + "px")
         .style("top", (d3.event.pageY - 15) + "px");
 }
@@ -97,7 +97,7 @@ function drawDonut(data, isOther = false, targetSvg = svg, chartRadius = radius)
         });
 
         if (Object.keys(otherData).length > 0) {
-            processedData["Autre"] = d3.sum(Object.values(otherData));
+            processedData["Other"] = d3.sum(Object.values(otherData));
             cachedOtherData = Object.assign({}, otherData);
         }
     } else {
@@ -135,7 +135,7 @@ function drawDonut(data, isOther = false, targetSvg = svg, chartRadius = radius)
         .on("mouseleave", hideTooltip);
 
     if (!isOther) {
-        slices.filter(d => d.data.key === "Autre")
+        slices.filter(d => d.data.key === "Other")
             .classed("clickable", true)
             .on("click", showModal);
     }
@@ -149,7 +149,7 @@ function drawDonut(data, isOther = false, targetSvg = svg, chartRadius = radius)
     targetSvg.append("text")
         .attr("class", "total-label")
         .attr("dy", "0.7em")
-        .text(totalValue.toLocaleString() + " musiques");
+        .text(totalValue.toLocaleString() + " musics");
 
     // Création des polylines
     targetSvg.selectAll('allPolylines')
@@ -200,7 +200,7 @@ function drawDonut(data, isOther = false, targetSvg = svg, chartRadius = radius)
         .attr('dy', '0em');
 
     if (!isOther) {
-        labels.filter(d => d.data.key === "Autre")
+        labels.filter(d => d.data.key === "Other")
             .classed("clickable", true)
             .on("click", showModal);
     }
