@@ -59,6 +59,20 @@ select {
 }
 
 
+.tooltip2 {
+    position: absolute;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 2000;
+}
+
+
 .controls2 {
     position: absolute;
     top: 50%;

@@ -494,7 +494,7 @@ var radius2 = Math.min(width2, height2) / 2 - margin2;
 
 var tooltip2 = d3.select("body")
     .append("div")
-    .attr("class", "tooltip");
+    .attr("class", "tooltip2");
 
 var modalWidth2 = Math.min(width2 * 0.9, 1000);
 var modalHeight2 = Math.min(height2 * 0.9, 800);
@@ -508,10 +508,10 @@ var originalPercentages2 = {};
 
 function showTooltip(d, isOther = false) {
     const songs = d.data.value;
-
+    console.log(d.data.key, songs)
     tooltip2
         .style("opacity", 1)
-        .html(`${d.data.key}<br>${songs} musique${songs > 1 ? 's' : ''}`)
+        .html(`${d.data.key}<br>${songs} music${songs > 1 ? 's' : ''}`)
         .style("left", (d3.event.pageX + 10) + "px")
         .style("top", (d3.event.pageY - 15) + "px");
 }
@@ -614,16 +614,16 @@ function drawDonut(data, targetDivId, isOther = false) {
     svg.append("text")
         .attr("class", "total-label")
         .attr("text-anchor", "middle")
-        .attr("font-size", "1.2em") // Augmenter la taille de la police
-        .attr("font-weight", "bold") // Mettre le texte en gras
+        .attr("font-size", "1.2em")
+        .attr("font-weight", "bold")
         .attr("dy", "-0.5em")
         .text("Total");
 
     svg.append("text")
         .attr("class", "total-label")
         .attr("text-anchor", "middle")
-        .attr("font-size", "1.2em") // Augmenter la taille de la police
-        .attr("font-weight", "bold") // Mettre le texte en gras
+        .attr("font-size", "1.2em")
+        .attr("font-weight", "bold")
         .attr("dy", "0.7em")
         .text(totalValue.toLocaleString() + " musics");
 
@@ -648,7 +648,6 @@ function drawDonut(data, targetDivId, isOther = false) {
                 posB[1] = 1*posB[1] + 40 * Math.exp(-10 * Math.abs(midangle - Math.PI/2- Math.PI/2));
                 posC[1] = 1*posC[1] + 40 * Math.exp(-10 * Math.abs(midangle- Math.PI/2 - Math.PI/2));
             }
-            console.log(midangle, Math.abs(midangle - Math.pi/2) ,posA, posB, posC)
             return [posA, posB, posC];
         });
 
