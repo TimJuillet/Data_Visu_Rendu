@@ -39,6 +39,8 @@
     border-radius: 10px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
     z-index: 1001;
+    width : fit-content;
+    height : fit-content;
 }
 .close-button {
     position: absolute;
@@ -114,3 +116,4 @@ body {
     overflow: hidden;
     padding: 10pt !important;
 }
+
