@@ -46,10 +46,10 @@ var modalRadius = Math.min(modalWidth, modalHeight) / 2 - margin;
 
 var modalSvg = d3.select("#modal_dataviz")
     .append("svg")
-    .attr("width", modalWidth)
+    .attr("width", modalWidth + 200)
     .attr("height", modalHeight)
     .append("g")
-    .attr("transform", "translate(" + modalWidth / 2 + "," + modalHeight / 2 + ")");
+    .attr("transform", "translate(" + (modalWidth+200) / 2 + "," + modalHeight / 2 + ")");
 
 var color = d3.scaleOrdinal(d3.schemeCategory10);
 var currentData = null;
