@@ -156,7 +156,7 @@ d3.json("../../data/data_mots.json").then(data => {
         const averageSize = totalOccurrences / limitedWords.length;
 
         // Échelle pour normaliser la taille des mots afin que le word cloud reste cohérent en taille
-        const normalizationFactor =4.5; // Ajuste cette valeur pour modifier l'échelle globale du word cloud
+        const normalizationFactor =4; // Ajuste cette valeur pour modifier l'échelle globale du word cloud
         const sizeScale = d3.scaleLinear()
             .domain([1, maxFrequency])
             .range([2, (normalizationFactor / averageSize) * maxFrequency]); // Ajuster la taille max dynamiquement
