@@ -1,15 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="style2.css">
+    <meta charset="UTF-8">
+    <title>Page</title>
+    <link rel="stylesheet" href="style2.css"> <!-- Ajoute ton CSS ici -->
+    <style>
+        #wordCloudOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Couleur de fond avec transparence */
+            z-index: 1000;
+        }
+        #wordCloudOverlay iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 90%;
+            border: none;
+        }
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .controls2 button {
+            margin: 5px; /* Ajoute un petit espace entre les boutons */
+        }
+    </style>
 </head>
 <body>
+    <!-- Contenu de la page existante -->
     <div class="controls">
         <select id="genreSelect"></select>
     </div>
     <div class="controls2">
-        <button id="actionButton">Proportion of<br>Genders</button>
+        <button id="actionButton">Proportion of<br>Genres</button>
+        <button id="openWordCloud">Word Cloud</button> <!-- Bouton ajouté ici -->
     </div>
     <div class="slider-container">
         <label class="slider-label">Year</label>
@@ -18,25 +55,30 @@
     </div>
     <svg id="my_dataviz"></svg>
 
-
-    <div id="detailsModal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-button">×</button>
-            <div id="my_dataviz2"></div>
-        </div>
-        <div id="detailsModal2" class="modal-overlay2">
-            <div class="modal-content">
-                <button class="close-button2">×</button>
-                <div id="modal_dataviz3"></div>
-            </div>
-        </div>
+    <!-- Overlay pour le word cloud -->
+    <div id="wordCloudOverlay">
+        <button class="close-button" onclick="closeWordCloud()">×</button>
+        <iframe src="../Skander/wordCloud.html"></iframe>
     </div>
 
+    <!-- Scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
     <script src="https://unpkg.com/topojson@3.0.2/dist/topojson.min.js"></script>
     <script src="../../data/countryMapping.js"></script>
     <script src="../../data/countryCorrection.js"></script>
     <script src="script2.js"></script>
+
+    <script>
+        // Fonction pour ouvrir le word cloud
+        document.getElementById('openWordCloud').onclick = function() {
+            document.getElementById('wordCloudOverlay').style.display = 'block';
+        };
+
+        // Fonction pour fermer le word cloud
+        function closeWordCloud() {
+            document.getElementById('wordCloudOverlay').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
