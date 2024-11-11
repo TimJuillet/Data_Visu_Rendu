@@ -448,7 +448,7 @@ window.addEventListener('resize', function() {
 });
 
 document.getElementById("actionButton").addEventListener("click", function() {
-    showNewView();
+    window.location.href = "..\\Sayf\\line_graph.html";
 });
 
 document.querySelector('.close-button').addEventListener('click', hideNewView);

@@ -19,6 +19,7 @@ window.onload = function() {
     const genre = decodeURIComponent(params.genre); // Décoder le genre (par exemple 'pop')
     const year = params.year; // L'année ne nécessite pas de dé-formatage
     console.log({ country, genre, year })
+    document.getElementById("title").innerText = `Repartition of sub-genres of ${genre} in ${country} in ${year}`;
     updateChart(year, genre, country);
 };
 // Configuration initiale

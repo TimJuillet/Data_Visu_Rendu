@@ -77,13 +77,15 @@ select {
     border-radius: 10px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
     z-index: 1001;
+    width: auto;
+    height: auto;
 }
 .clickable {
-    cursor: pointer;
+    cursor: pointer !important;
 }
 
 .x-axis .tick {
-    cursor: pointer;
+    cursor: pointer !important;
 }
 
 .close-button2 {

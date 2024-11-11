@@ -21,6 +21,9 @@ d3.csv("../../data/summary.csv").then(data => {
   // Sélectionner "World" par défaut si "World" est dans la liste des pays
   countrySelect.property("value", "World");
 
+  // new MultiSelect(document.getElementById('country-select'));
+$("#country-select").selectpicker();
+
   // Remplir la liste déroulante des genres et sélectionner tous les genres par défaut
   const genreSelect = d3.select("#genre-select");
   genreSelect.selectAll("option")
@@ -30,6 +33,10 @@ d3.csv("../../data/summary.csv").then(data => {
              .text(d => d)
              .attr("value", d => d)
              .attr("selected", true); // Sélectionner tous les genres par défaut
+
+    // new MultiSelect(document.getElementById('genre-select'));
+$("#genre-select").selectpicker();
+
 
   // Initialiser les champs d'entrée de l'intervalle d'années
   const years = Array.from(new Set(data.map(d => d.year)));
@@ -69,10 +76,10 @@ d3.csv("../../data/summary.csv").then(data => {
 
   function updateChart() {
     // Récupérer le pays sélectionné
-    const selectedCountries = Array.from(countrySelect.property("selectedOptions"), option => option.value);
+    const selectedCountries = $(countrySelect.node()).selectpicker("val");
 
     // Récupérer les genres sélectionnés
-    const selectedGenres = Array.from(genreSelect.property("selectedOptions"), option => option.value);
+    const selectedGenres = $(genreSelect.node()).selectpicker("val");
 
 
     // Filtrer les données pour le pays, les genres,
@@ -229,7 +236,7 @@ function calculatePercentages(data) {
     return percentages;
 }
 
-function showOtherChart() {
+function showOtherChart(otherData) {
     document.getElementById('detailsModal2').style.display = 'block';
     if (cachedOtherData2 && Object.keys(cachedOtherData2).length > 0) {
         drawDonut(cachedOtherData2, "modal_dataviz3", true);
@@ -259,20 +266,20 @@ var tooltip2 = d3.select("body")
     .append("div")
     .attr("class", "tooltip");
 
-function showTooltip(d, isOther = false) {
+function showTooltip(event, d, isOther = false) {
     const songs = d.data.value;
 
     tooltip2
         .style("opacity", 1)
-        .html(`${d.data.key}<br>${songs} musique${songs > 1 ? 's' : ''}`)
-        .style("left", (d3.event.pageX + 10) + "px")
-        .style("top", (d3.event.pageY - 15) + "px");
+        .html(`${d.data.key}<br>${songs} song${songs > 1 ? 's' : ''}`)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 15) + "px");
 }
 
-function moveTooltip() {
+function moveTooltip(event) {
     tooltip2
-        .style("left", (d3.event.pageX + 10) + "px")
-        .style("top", (d3.event.pageY - 15) + "px");
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 15) + "px");
 }
 
 function hideTooltip() {
@@ -359,7 +366,7 @@ function drawDonut(data, targetDivId, isOther = false) {
         .attr("stroke", "white")
         .style("stroke-width", "2px")
         .style("opacity", 0.7)
-        .on("mouseover", d => showTooltip(d, isOther))
+        .on("mouseover", (event, d) => showTooltip(event, d, isOther))
         .on("mousemove", moveTooltip)
         .on("mouseleave", hideTooltip);
 
@@ -384,7 +391,7 @@ function drawDonut(data, targetDivId, isOther = false) {
         .attr("font-size", "1.2em") // Augmenter la taille de la police
         .attr("font-weight", "bold") // Mettre le texte en gras
         .attr("dy", "0.7em")
-        .text(totalValue.toLocaleString() + " musics");
+        .text(totalValue.toLocaleString() + " songs");
 
     // Création des polylines
     svg.selectAll('allPolylines')
