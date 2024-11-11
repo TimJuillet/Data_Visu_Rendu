@@ -3,13 +3,28 @@
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" href="style2.css">
+    <style>
+        /* Appliquer Flexbox pour organiser les boutons en colonne */
+        .controls2 {
+            display: flex;
+            flex-direction: column; /* Aligner les boutons en colonne */
+            gap: 10px; /* Espace entre les boutons */
+        }
+
+        /* Si nécessaire, ajustez la largeur des boutons pour qu'ils soient tous de la même taille */
+        button {
+            width: 100%; /* Vous pouvez ajuster cette valeur selon vos besoins */
+        }
+    </style>
 </head>
 <body>
     <div class="controls">
         <select id="genreSelect"></select>
     </div>
     <div class="controls2">
-        <button id="actionButton">Proportion of<br>Genders</button>
+        <button id="actionButton">Proportion of<br>genres</button>
+        <!-- Nouveau bouton "Load Bar Chart" en dessous de "Proportion of genres" -->
+        <button id="loadBarChartButton">Load Bar Chart</button>
     </div>
     <div class="slider-container">
         <label class="slider-label">Year</label>
@@ -18,7 +33,7 @@
     </div>
     <svg id="my_dataviz"></svg>
 
-
+    <!-- Modal content -->
     <div id="detailsModal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-button">×</button>
@@ -38,5 +53,13 @@
     <script src="../../data/countryMapping.js"></script>
     <script src="../../data/countryCorrection.js"></script>
     <script src="script2.js"></script>
+
+    <script>
+        // Ajout d'un événement de clic sur le bouton "Load Bar Chart"
+        document.getElementById("loadBarChartButton").addEventListener("click", function() {
+            // Rediriger vers la page bar_chart.html
+            window.location.href = "../Loris/bar_chart.html";
+        });
+    </script>
 </body>
 </html>
