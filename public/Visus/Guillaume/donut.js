@@ -58,18 +58,10 @@ var originalPercentages = {};
 
 function showTooltip(d, isOther = false) {
     const songs = d.data.value;
-    let percentage;
-
-    if (isOther) {
-        percentage = originalPercentages[d.data.key];
-    } else {
-        const total = d3.sum(Object.values(currentData));
-        percentage = (d.data.value / total) * 100;
-    }
 
     tooltip
         .style("opacity", 1)
-        .html(`${d.data.key}<br>${songs} musique${songs > 1 ? 's' : ''}<br>${percentage.toFixed(1)}%`)
+        .html(`${d.data.key}<br>${songs} musique${songs > 1 ? 's' : ''}`)
         .style("left", (d3.event.pageX + 10) + "px")
         .style("top", (d3.event.pageY - 15) + "px");
 }
@@ -270,15 +262,3 @@ function updateChart(year, genre, country) {
         console.error("Erreur lors du chargement des données:", error);
     });
 }
-
-document.getElementById('searchButton').addEventListener('click', function() {
-    var year = document.getElementById('yearInput').value;
-    var genre = document.getElementById('musicStyle').value;
-    var country = document.getElementById('countryInput').value;
-
-    if (year && genre && country) {
-        updateChart(year, genre, country);
-    } else {
-        alert("Veuillez remplir tous les champs.");
-    }
-});

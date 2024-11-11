@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+    <div class="controls">
+        <select id="genreSelect"></select>
+    </div>
+    <div class="controls2">
+        <button id="actionButton">Proportion of<br>Genders</button>
+    </div>
+    <div class="slider-container">
+        <label class="slider-label">Year</label>
+        <input type="range" id="yearSlider" class="year-slider">
+        <div id="year-display"></div>
+    </div>
+    <svg id="my_dataviz"></svg>
+
+
+    <div id="detailsModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-button">×</button>
+            <div id="my_dataviz2"></div>
+        </div>
+        <div id="detailsModal2" class="modal-overlay2">
+            <div class="modal-content">
+                <button class="close-button2">×</button>
+                <div id="modal_dataviz3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
+    <script src="https://unpkg.com/topojson@3.0.2/dist/topojson.min.js"></script>
+    <script src="../../data/countryMapping.js"></script>
+    <script src="../../data/countryCorrection.js"></script>
+    <script src="script2.js"></script>
+</body>
+</html>
