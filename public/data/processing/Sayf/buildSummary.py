@@ -938,7 +938,7 @@ country_mapping = {
 }
 
 
-data_file = '../Guillaume2.json'
+data_file = '../../Guillaume2.json'
 
 # Charger le fichier JSON
 with open(data_file, 'r', encoding='utf-8') as json_file:
@@ -949,6 +949,8 @@ import csv
 
 rows = []
 genre_sums = {}  # Dictionnaire pour stocker les sommes des nbSongs par (year, genre)
+dict_make_unique = {}
+i = 0
 
 # Parcours des données existantes
 for country, genres in data.items():
@@ -957,12 +959,18 @@ for country, genres in data.items():
             # Construire une ligne avec les informations extraites
             if genre == "nan" or genre == "":
                 genre = "Unknown"
-            rows.append({
-                "country": country_mapping[country],
-                "year": year,
-                "genre": genre,
-                "nbSongs": nbSongs
-            })
+            true_country = country_mapping[country]
+            if (true_country, year, genre) not in dict_make_unique:
+                dict_make_unique[(true_country, year, genre)] = i
+                rows.append({
+                    "country": true_country,
+                    "year": year,
+                    "genre": genre,
+                    "nbSongs": nbSongs
+                })
+                i += 1
+            else:
+                rows[dict_make_unique[(true_country, year, genre)]]["nbSongs"] += nbSongs
 
             # Calculer les sommes des nbSongs pour chaque combinaison (year, genre)
             if (year, genre) not in genre_sums:
@@ -980,7 +988,7 @@ for (year, genre), total_songs in genre_sums.items():
 
 # Écrire dans le fichier CSV
 filename = 'summary.csv'
-with open('../'+filename, 'w', newline='', encoding='utf-8') as csv_file:
+with open('../../'+filename, 'w', newline='', encoding='utf-8') as csv_file:
     fieldnames = ["country", "year", "genre", "nbSongs"]
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
