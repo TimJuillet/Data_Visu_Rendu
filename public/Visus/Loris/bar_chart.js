@@ -7,7 +7,7 @@ d3.json("top_artists_by_genre.json").then(data => {
     const chart = svg.append("g")
                      .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const genres = Object.keys(data).sort();  // Trier les genres par ordre lexicographique
+    const genres = Object.keys(data).sort();
     const colors = d3.scaleOrdinal(d3.schemeCategory10);
 
     // Configuration du sélecteur de genre
@@ -23,13 +23,21 @@ d3.json("top_artists_by_genre.json").then(data => {
                      .text(genre);
     });
 
+    let previousSelection = [];
+
     genreSelector.on("change", function() {
-        const selectedGenres = Array.from(this.selectedOptions).map(option => option.value);
-        if (selectedGenres.length > 10) {
+        const currentSelection = Array.from(this.selectedOptions).map(option => option.value);
+        
+        if (currentSelection.length > 10) {
             alert("Vous ne pouvez sélectionner que 10 genres au maximum.");
-            this.options[this.selectedIndex].selected = false;
+            Array.from(this.options).forEach(option => {
+                option.selected = previousSelection.includes(option.value);
+            });
+            updateChart(previousSelection);
+        } else {
+            previousSelection = currentSelection;
+            updateChart(currentSelection);
         }
-        updateChart(selectedGenres);
     });
 
     function updateChart(selectedGenres) {
@@ -42,7 +50,7 @@ d3.json("top_artists_by_genre.json").then(data => {
         const stackedData = selectedGenres.map(genre => {
             const artists = data[genre]
                 .sort((a, b) => a.average_rank - b.average_rank)
-                .slice(0, 10);  // Limiter à 10 artistes par genre
+                .slice(0, 10);
             
             let cumulative = 0;
             const segments = artists.map(artist => {
@@ -87,8 +95,28 @@ d3.json("top_artists_by_genre.json").then(data => {
         chart.append("g")
              .call(d3.axisLeft(y));
 
-        // Créer les barres empilées
+        // Ajout du titre de l'axe X
+        chart.append("text")
+             .attr("text-anchor", "middle")
+             .attr("x", width / 2)
+             .attr("y", height + margin.bottom - 10)
+             .text("Genres musicaux")
+             .style("font-size", "14px");
+
+        // Ajout du titre de l'axe Y
+        chart.append("text")
+            .attr("text-anchor", "end")
+            .attr("x", 150)
+            .attr("y", -25)
+            .text("Classement cumulé des ranks")
+            .style("font-size", "14px");
+
+        // Créer les barres empilées avec couleur progressive pour chaque artiste (inverse)
         stackedData.forEach((genreData, genreIndex) => {
+            const colorScale = d3.scaleLinear()
+                                 .domain([0, genreData.segments.length - 1])
+                                 .range([d3.rgb(colors(genreIndex)).darker(), d3.rgb(colors(genreIndex)).brighter()]);
+
             chart.selectAll(`.bar-${genreIndex}`)
                  .data(genreData.segments)
                  .enter()
@@ -97,7 +125,7 @@ d3.json("top_artists_by_genre.json").then(data => {
                  .attr("y", d => y(d.end))
                  .attr("width", x.bandwidth())
                  .attr("height", d => y(d.start) - y(d.end))
-                 .attr("fill", colors(genreIndex))
+                 .attr("fill", (d, i) => colorScale(i)) // Applique la couleur inversée selon l'index de l’artiste
                  .attr("stroke", "white")
                  .attr("stroke-width", 0.5)
                  .append("title")

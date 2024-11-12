@@ -58,3 +58,12 @@ The description of the project should include :
 - apres avoir extrait les donées j'ai traité le sqlite pour creer un fichier json qui contiens pour chaque genre et chaque date le nombre d'occurences de chaque mot, ce fichier s'appelle data_mots.json et se trouve dans le dossier data, j'ai aussi blacklisté des mots trop fréquents qui apparaissaient comme etant les plus frequents dans tout les genres de musiques et pour toutes les dates ( comme I, you, and, the, par exemple)
 - une fois qu'on ouvre le wordCloud, on tombe sur un genre choisi par defaut parmis tout les sous genre correspondant au genre choisi dans la bubble map, la date correspond aussi si des chansons avec paroles correspondantes ont été trouvées. je laisse quand meme a l'utilisateur l'option de changer le genre, avec tout les sous genre correspondants au genre choisi apparaissant en bleu
 - l'utilisateur peut aussi decider d'exclure des mots si il le désire si certains mots sont trop encombrants 
+
+
+### Loris Drid
+
+- Un stacked bar chart qui montre la popularité des artistes par genre. 
+- J'ai fait mon propre processing, avec la récupération des artistes, avec la liste de leur album qui contiennent les genres et la liste des musiques, qui elles-mêmes contiennent un rank.Pour chaque artiste, on garde le(s) genre(s) et la moyenne des rank de ses musiques.Les données sont ensuite groupées par genre, on obtient donc pour chaque genre les artistes avec leur rank moyen.
+- L'utilisateur peut sélectionner jusqu'à 10 genres en même temps, pour chaque genre les 5 artistes les plus populaires sont affichés.
+- Au sein d'un genre, la barre est subdivisé en 5 segments représentant les 5 artistes avec les ranks les plus populaires, chaque segment possède une hauteur correspondant à la valeur du rank de l'artiste.
+- Les valeurs cumulative des rank sont affichés en ordonnée, ce qui permet de voir la différence de popularité entre les genres pour le top 5.
