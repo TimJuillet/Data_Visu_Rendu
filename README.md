@@ -1,5 +1,12 @@
 # Data Visualisation - Rendu
 
+## Membres du groupe
+- Timothée JUILLET (IA-ID)
+- Guillaume ARRIGONI (IA-ID)
+- Sayf Eddine HALMI (IA-ID)
+- Skander MEZIOU (IA-ID)
+- Loris DRID (IHM)
+
 ## Contenu
 
 - Le dossier 'Rapports' contient pour chaque membre, la partie suivante du travail :
