@@ -28,11 +28,14 @@ The description of the project should include :
 - Une bubble map indiquant d'ou viennent les genres par pays pour chaque année. 
 - Mon processing a permis de créer le fichier 'Timothee.json' liant les artistes à leurs pays d'origine. Je le lis au fichier 'Guillaume.json' pour faire ma visualisation.
 - J'ai également créé le fichier countryMapping.js. En effet les pays indiqué dans le dataset ne correspondaient pas toujours à ceux de la cartes, voir n'étaient pas des pays du tout. De cette maniere, si le pays d'un artiste est indiqué comme "Marseille" (ce qui arrive), la donnée sera bien compté pour la France.
-- Country correction correspond à la position de la bulle des pays sur la carte. Pour cela, j'ai d'abord calculé le centre des pays en me servant de la carte qui est un svg. J'ai affiché les points et vu que ca ne marchait pas pour certains pays comme la France a cause des territoires outre-mer. Pour les pays avec des erreurs, j'ai appliqué une correction manuelle. J'ai ensuite sauvegardé toutes les positions.
-- Le fichier bubble.js correspond à la visualisation de la bubble map. seul que j'ai codé. Les version 2 et 3 correspondent à la bubble avant les liens vers les autres visualisations.
+- J'ai également créé ountryCorrection.js. Il correspond à la position de la bulle des pays sur la carte. Pour cela, j'ai d'abord calculé le centre des pays en me servant de la carte qui est un svg. J'ai affiché les points et vu que ca ne marchait pas pour certains pays comme la France a cause des territoires outre-mer. Pour les pays avec des erreurs, j'ai appliqué une correction manuelle. J'ai ensuite sauvegardé toutes les positions.
+- Le fichier bubble.js correspond à la visualisation de la bubble map. seul que j'ai codé. Les version 2 et 3 correspondent à la bubble avec les liens vers les autres visualisations.
+- La valeur des données est en général assez basse, cependant pour les valeurs les plus extrêmes comme le Rock aux Etat-Unis cette valeur s'envole à parfois plus de 5000. Comme relevé à l'oral, une échelle logarithmique aurait été interessante, cependant je n'ai simplement pas pensé à cette solution. Ma solution a donc été différente : J'ai limité la taille des bulles pour les valeurs de plus de 1000. De cette maniere les plus petites restent parfaitement visibles et les plus grosses (cas très rares) ne font pas la taille de la map.
 - Ajout d'animations sur les bulles lors du changement des données.
 - Ajout d'animation sur les bulles quand on passe la souris dessus, pour comprendre que l'on peut cliquer dessus.
-
+- Vous pourrez remarquer dans le workflow des données que le merge on artist name entre Timothée et Guillaume est fait 2 fois, ce qui est sous optimal. Cela est du au fait que le traitement de mes données avai déjà était fait avec les deux fichiers, et que le fichier Guillaume2 a été créé ensuite. Comme tout changer m'aurait pris trop de temps puisque les structures des fichiers ne sont pas les mêmes, et que Guillaume2 ne map pas les locations vers les pays, j'ai préféré laisser cette redondance.
+- Pour les données ne possédant pas du tout de pays, je les stock et indique leur pourcentage en bas à gauche de l'écran. Ce pourcentage est très faible.
+- Pour finir j'ai travaillé avec Guillaume pour faire sa transition des bubble vers ses donuts.
 
 ### Guillaume ARRIGONI :
 
