@@ -53,7 +53,7 @@ The description of the project should include :
 
 ### Skander Meziou 
 
-- un word Cloud qui indique la fréquence de chaque mot par genre 
+- Un word Cloud qui indique la fréquence de chaque mot par genre 
 - j'ai du extraire les donées directement depuis l'api afin d'obtenir les paroles qui n'etaient pas disponibles dans la base de données utilisée par mes camarades. j'ai donc crée un fichier db.sqlite qui contiens les paroles de toutes les musiques (je n'ai pas mis le fichier dans le repository en raison de sa taille mais le code pour le generer se trouve dans mon code python qui se trouve dans "Data_Visu_Rendu\public\data\processing\SkanderMeziou.ipynb")
 - apres avoir extrait les donées j'ai traité le sqlite pour creer un fichier json qui contiens pour chaque genre et chaque date le nombre d'occurences de chaque mot, ce fichier s'appelle data_mots.json et se trouve dans le dossier data, j'ai aussi blacklisté des mots trop fréquents qui apparaissaient comme etant les plus frequents dans tout les genres de musiques et pour toutes les dates ( comme I, you, and, the, par exemple)
 - une fois qu'on ouvre le wordCloud, on tombe sur un genre choisi par defaut parmis tout les sous genre correspondant au genre choisi dans la bubble map, la date correspond aussi si des chansons avec paroles correspondantes ont été trouvées. je laisse quand meme a l'utilisateur l'option de changer le genre, avec tout les sous genre correspondants au genre choisi apparaissant en bleu
