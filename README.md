@@ -33,6 +33,15 @@ The description of the project should include :
 - Ajout d'animations sur les bulles lors du changement des données.
 - Ajout d'animation sur les bulles quand on passe la souris dessus, pour comprendre que l'on peut cliquer dessus.
 
+
+### Guillaume ARRIGONI :
+
+- J'ai créé deux représentations en diagramme en anneau (ou "donut"). La première représentation est accessible en cliquant sur une bulle de la carte de la visualisation de Timothée et permet d'afficher la répartition des sous-genres pour un pays, un genre, et une année donnés. La deuxième est accessible en cliquant sur l'année de la visualisation de Sayf et affiche la répartition des principaux genres pour tous les pays sur une année spécifique.
+- Dans les deux représentations, il est possible de consulter le nombre exact de morceaux de musique dans chaque section en survolant cette dernière. Afin d'éviter une surcharge visuelle dans le diagramme en anneau, tous les segments représentant moins de 2 % sont regroupés dans une nouvelle section appelée "other". L'utilisateur peut cliquer sur cette section pour afficher l'ensemble des genres ou sous-genres qu’elle contient dans une nouvelle représentation en donut. Dans cette visualisation détaillée, les segments avec une proportion inférieure à 0,8 % sont eux aussi regroupés dans une section "other" qui, cette fois, n'est pas cliquable. Cela garantit une interface claire et lisible et permet de filtrer les informations trop spécifiques pour rester pertinentes à un niveau global.
+- Mon travail est donc organisé dans le dossier Visus/Guillaume, qui contient la représentation en donut des sous-genres. Certains éléments se trouvent également dans le dossier bubble2 de Visu/Timothée, pour lier les clics vers différentes pages. J'ai également contribué aux fichiers dans le dossier Visu/Sayf, qui permettent d'afficher la deuxième représentation en donut des genres principaux.
+- Pour le traitement des données, j'ai développé le code pour générer les fichiers Guillaume.json, Guillaume2.json, et inverseMapping.js. Le fichier Guillaume2.json est une amélioration de Guillaume.json, avec une meilleure structure et l'ajout de données de localisation. Cependant, puisque certains travaux avaient déjà été réalisés avec Guillaume.json par d'autres camarades, le projet inclut les deux versions de représentation. Le fichier inverseMapping.js permet d’obtenir, à partir du nom d’un pays dans la carte de Timothée, toutes les localisations contenues dans le dataset de Guillaume2.json. Le code pour générer les fichiers Guillaume.json et Guillaume2.json se trouve dans data/processing/Guillaume/dataProcessingWasabi.py, et le code pour générer inverseMapping.js est dans inverseCountryMappingJS.ipynb.
+
+
 ### Sayf Eddine Halmi :
 
 - Un graphe multi-lignes indiquant l'évolution du nombre de genres par année.
